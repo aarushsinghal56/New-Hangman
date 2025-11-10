@@ -14,6 +14,15 @@
             background: linear-gradient(to right bottom, #6366f1, #22d3ee); /* Indigo 500 to Cyan 400 gradient */
             overflow-x: hidden; /* Prevent horizontal scroll */
         }
+        /* New: Main layout wrapper */
+        .main-layout {
+            display: flex;
+            justify-content: center; /* This will center the game-container */
+            align-items: flex-start;
+            width: 100%;
+            padding: 1rem; /* p-4 */
+        }
+
         /* Main game container */
         .game-container {
             position: relative;
@@ -23,9 +32,8 @@
             border-radius: 1.5rem; /* 2xl */
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             padding: 2.5rem; /* p-10 */
-            margin: 1rem; /* p-4 */
+            margin: 0; /* Removed margin */
         }
-        /* The .in-game class is no longer needed for padding */
         
         /* Style for the hangman SVG parts */
         .hangman-part {
@@ -71,43 +79,73 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- CHAT POPUP STYLES --- */
+        /* --- MOBILE CHAT POPUP STYLES --- */
         #chat-icon-btn {
             position: fixed;
             bottom: 1.5rem; /* 24px */
-            right: 1.5rem; /* 24px */ /* CORRECT: Stays bottom-right */
+            right: 1.5rem; /* 24px */
             z-index: 50;
         }
-        #chat-popup {
+        #chat-popup-mobile {
             position: fixed;
             bottom: 5rem; /* 80px */
-            right: 1.5rem; /* 24px */ /* CORRECT: Stays bottom-right */
+            right: 1.5rem; /* 24px */
             width: 300px;
             height: 400px;
             z-index: 40;
             transition: all 0.3s ease-in-out;
-            transform-origin: bottom right; /* CORRECT: Stays bottom-right */
+            transform-origin: bottom right;
         }
         /* Hide by default */
-        #chat-popup.scale-0 {
+        #chat-popup-mobile.scale-0 {
             transform: scale(0);
             opacity: 0;
         }
         /* Show */
-        #chat-popup.scale-100 {
+        #chat-popup-mobile.scale-100 {
             transform: scale(1);
             opacity: 1;
         }
-        #chat-messages {
+        #chat-messages-mobile {
             scroll-behavior: smooth;
         }
-        .emoji-reaction-btn {
+        .emoji-reaction-btn-mobile {
             transition: all 0.15s ease-out;
             font-size: 1.5rem; /* 24px */
         }
-        .emoji-reaction-btn:hover {
+        .emoji-reaction-btn-mobile:hover {
             transform: scale(1.25);
         }
+
+        /* --- DESKTOP CHAT WINDOW --- */
+        #chat-window-desktop {
+            position: fixed;
+            top: 5rem; /* More "in-between" spacing */
+            right: 5rem; /* More "in-between" spacing */
+            width: 320px; /* w-80 */
+            height: 700px; /* Fixed height */
+            background-color: rgba(239, 246, 255, 0.9); /* blue-50 with opacity */
+            border: 1px solid #bfdbfe; /* blue-200 */
+            border-radius: 12px;
+            padding: 0; /* Remove padding, add to inner elements */
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 30;
+            transition: all 0.3s ease-in-out;
+            transform-origin: top right;
+            display: flex;
+            flex-direction: column;
+        }
+        #chat-messages-desktop {
+            scroll-behavior: smooth;
+        }
+        .emoji-reaction-btn-desktop {
+            transition: all 0.15s ease-out;
+            font-size: 1.5rem; /* 24px */
+        }
+        .emoji-reaction-btn-desktop:hover {
+            transform: scale(1.25);
+        }
+
 
         /* --- EMOJI REACTION STYLES --- */
         #emoji-display-area {
@@ -186,8 +224,8 @@
         /* === NEW PLAYER INFO BOX === */
         #player-info-box {
             position: fixed;
-            top: 2.5rem; /* p-10 */
-            left: 2.5rem; /* p-10 */ /* CHANGED: Moved to left */
+            top: 5rem; /* More "in-between" spacing */
+            left: 5rem; /* More "in-between" spacing */
             width: 220px;
             background-color: rgba(239, 246, 255, 0.9); /* blue-50 with opacity */
             border: 1px solid #bfdbfe; /* blue-200 */
@@ -196,23 +234,33 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             z-index: 30;
             transition: all 0.3s ease-in-out;
-            transform-origin: top left; /* CHANGED: Origin to left */
+            transform-origin: top left;
         }
         #player-info-box.hidden {
-            transform: scale(0.9) translateX(-10%); /* CHANGED: Hide to left */
+            transform: scale(0.9) translateX(-10%);
             opacity: 0;
             pointer-events: none;
         }
+        
         /* Hide on mobile, show old display */
-        @media (max-width: 767px) {
+        @media (max-width: 1023px) { /* lg breakpoint */
             #player-info-box {
+                display: none !important; /* Force hide on mobile */
+            }
+            #chat-window-desktop {
                 display: none !important; /* Force hide on mobile */
             }
         }
         /* Show on desktop (will be controlled by JS adding/removing 'hidden') */
-        @media (min-width: 768px) {
+        @media (min-width: 1024px) { /* lg breakpoint */
             #score-display-mobile {
                 display: none;
+            }
+            #chat-icon-btn {
+                display: none; /* Hide mobile chat icon */
+            }
+            #chat-popup-mobile {
+                display: none; /* Hide mobile chat popup */
             }
         }
 
@@ -292,293 +340,327 @@
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
 
-    <!-- === NEW PLAYER INFO BOX (Desktop) === -->
-    <!-- Moved OUTSIDE the main container -->
-    <div id="player-info-box" class="hidden md:flex flex-col gap-3">
-        <!-- Round -->
-        <div id="player-info-round">
-            <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-            <span>Round 1 / 3</span>
-        </div>
-        
-        <!-- Player 1 (Me) -->
-        <div id="player-info-me" class="player-info-item">
-            <div id="player-info-me-avatar" class="player-info-avatar" style="background-color: #EF4444;">
-                <div id="player-info-me-crown" class="player-info-crown hidden">👑</div>
-            </div>
-            <span id="player-info-me-name" class="player-info-name">You</span>
-            <span id="player-info-me-score" class="player-info-score">0</span>
-        </div>
-        
-        <!-- Player 2 (Friend) -->
-        <div id="player-info-friend" class="player-info-item">
-            <div id="player-info-friend-avatar" class="player-info-avatar" style="background-color: #3B82F6;">
-                <div id="player-info-friend-crown" class="player-info-crown hidden">👑</div>
-            </div>
-            <span id="player-info-friend-name" class="player-info-name">Friend</span>
-            <span id="player-info-friend-score" class="player-info-score">0</span>
-        </div>
+    <!-- Main layout container -->
+    <main class="main-layout">
 
-        <!-- Timer -->
-        <div id="player-info-timer" class="player-info-timer">
-            02:30
-        </div>
-    </div>
-
-    <!-- This is the main container for the game -->
-    <div class="game-container" id="game-container">
-        
-        <!-- === Mode Selection Screen === -->
-        <div id="mode-selection-screen" class="space-y-6">
-            <h1 class="text-4xl font-extrabold text-center text-indigo-700">Hangman Challenge</h1>
-            <p class="text-center text-lg text-gray-700">How do you want to play?</p>
-            <button id="play-local-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                Play Locally (Hot-Seat)
-            </button>
-            <button id="play-online-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                Play Online with Friends
-            </button>
-        </div>
-
-        <!-- === Local Setup Screen === -->
-        <div id="local-setup-screen" class="hidden space-y-8">
-            <h1 class="text-3xl font-extrabold text-center text-indigo-700">Local Game</h1>
-            <p class="text-center text-gray-700 text-lg">Enter a secret word or phrase. Vowels will be revealed automatically!</p>
-            <div>
-                <label for="local-secret-word-input" class="block text-sm font-medium text-gray-700 mb-2">Secret Word</label>
-                <input type="password" id="local-secret-word-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="e.g., The Matrix">
-            </div>
-            <button id="start-local-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                Start Local Game
-            </button>
-            <p id="local-setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
-            <button id="back-to-modes-local-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
-        </div>
-
-        <!-- === Online Setup Screen === -->
-        <div id="online-setup-screen" class="hidden space-y-8">
-            <h1 class="text-3xl font-extrabold text-center text-indigo-700">Online Game</h1>
-            
-            <!-- Create Game -->
-            <div class="border p-4 rounded-lg space-y-4">
-                <h2 class="text-2xl font-bold text-gray-800 text-center">Create a Game</h2>
-                <div>
-                    <label for="create-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                    <input type="text" id="create-name-input" maxlength="15" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
-                </div>
-                <!-- Avatar for Create -->
-                <div class="avatar-container">
-                    <button class="avatar-button" id="create-avatar-prev">&lt;</button>
-                    <div class="avatar-display" id="create-avatar-display" style="background-color: #EF4444;"></div>
-                    <button class="avatar-button" id="create-avatar-next">&gt;</button>
-                </div>
-                <button id="create-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                    Create Game Room
-                </button>
-            </div>
-
-            <!-- Join Game -->
-            <div class="border p-4 rounded-lg space-y-4">
-                <h2 class="text-2xl font-bold text-gray-800 text-center">Join a Game</h2>
-                <div>
-                    <label for="join-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                    <input type="text" id="join-name-input" maxlength="15" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
-                </div>
-                 <!-- Avatar for Join -->
-                 <div class="avatar-container">
-                    <button class="avatar-button" id="join-avatar-prev">&lt;</button>
-                    <div class="avatar-display" id="join-avatar-display" style="background-color: #3B82F6;"></div>
-                    <button class="avatar-button" id="join-avatar-next">&gt;</button>
-                </div>
-                <div>
-                    <label for="join-game-id" class="block text-sm font-medium text-gray-700 mb-2">Game ID</label>
-                    <input type="text" id="join-game-id" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter Game ID">
-                </div>
-                <button id="join-game-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                    Join Game
-                </button>
+        <!-- === NEW PLAYER INFO BOX (Desktop) === -->
+        <div id="player-info-box" class="hidden lg:flex flex-col gap-3">
+            <!-- Round -->
+            <div id="player-info-round">
+                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <span>Round 1 / 3</span>
             </div>
             
-            <p id="setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
-            <p id="user-id-display" class="text-center text-gray-500 text-xs break-all"></p>
-            <button id="back-to-modes-online-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
-        </div>
-
-        <!-- === Round Selection Screen === -->
-        <div id="round-selection-screen" class="hidden space-y-6">
-            <h1 class="text-3xl font-extrabold text-center text-indigo-700">Set Match Length</h1>
-            <p class="text-center text-gray-700 text-lg">Choose how many rounds you want to play.</p>
-            <div class="space-y-3">
-                <button data-rounds="3" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
-                    Quick Match (Best of 3)
-                </button>
-                <button data-rounds="7" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
-                    Normal Match (Best of 7)
-                </button>
+            <!-- Player 1 (Me) -->
+            <div id="player-info-me" class="player-info-item">
+                <div id="player-info-me-avatar" class="player-info-avatar" style="background-color: #EF4444;">
+                    <div id="player-info-me-crown" class="player-info-crown hidden">👑</div>
+                </div>
+                <span id="player-info-me-name" class="player-info-name">You</span>
+                <span id="player-info-me-score" class="player-info-score">0</span>
             </div>
-            <!-- Custom Match -->
-            <div class="space-y-2">
-                <button data-rounds="custom" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
-                    Custom Match
-                </button>
-                <input type="number" id="custom-rounds-input" min="1" max="99" class="hidden w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter total rounds (e.g., 5)">
-            </div>
-            <button id="set-rounds-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                Start Match
-            </button>
-            <p id="round-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
-        </div>
-
-
-        <!-- === Waiting Screen === -->
-        <div id="waiting-screen" class="hidden text-center space-y-6">
-            <h1 class="text-3xl font-extrabold text-indigo-700">Game Created!</h1>
-            <p class="text-lg text-gray-700">Share this code with your friend:</p>
             
-            <!-- Share Code -->
-            <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
-                <label for="game-id-display" class="block text-sm font-medium text-gray-700 mb-2">Game Code</label>
-                <div class="flex">
-                    <input id="game-id-display" type="text" readonly class="w-full text-center text-2xl font-bold bg-white border border-gray-300 rounded-l-lg text-gray-800" value="Loading...">
-                    <button id="copy-game-id-btn" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-r-lg hover:bg-indigo-600 transition">Copy</button>
+            <!-- Player 2 (Friend) -->
+            <div id="player-info-friend" class="player-info-item">
+                <div id="player-info-friend-avatar" class="player-info-avatar" style="background-color: #3B82F6;">
+                    <div id="player-info-friend-crown" class="player-info-crown hidden">👑</div>
                 </div>
+                <span id="player-info-friend-name" class="player-info-name">Friend</span>
+                <span id="player-info-friend-score" class="player-info-score">0</span>
             </div>
 
-            <p class="text-lg text-gray-700">Waiting for a friend to join...</p>
-            <div class="loader"></div>
-            <button id="cancel-game-btn" class="text-sm text-red-600 hover:underline">Cancel Game</button>
-        </div>
-
-        <!-- === Set Word Screen (Online) === -->
-        <div id="set-word-screen" class="hidden space-y-8">
-            <h1 class="text-3xl font-extrabold text-center text-indigo-700">Your Turn!</h1>
-            <p class="text-center text-gray-700 text-lg">Enter a secret word for your friend to guess. Vowels will be revealed.</p>
-            <div>
-                <label for="online-secret-word-input" class="block text-sm font-medium text-gray-700 mb-2">Secret Word</label>
-                <input type="password" id="online-secret-word-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="e.g., The Matrix">
+            <!-- Timer -->
+            <div id="player-info-timer" class="player-info-timer">
+                02:30
             </div>
-            <button id="set-online-word-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                Set Word
-            </button>
-            <p id="set-word-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
         </div>
 
-        <!-- === Wait for Word Screen (Online) === -->
-        <div id="wait-for-word-screen" class="hidden text-center space-y-6">
-            <h1 class="text-3xl font-extrabold text-indigo-700">Get Ready!</h1>
-            <p class="text-lg text-gray-700">Your friend is picking a secret word...</p>
-            <div class="loader"></div>
-        </div>
+        <!-- This is the main container for the game -->
+        <div class="game-container" id="game-container">
+            
+            <!-- === Mode Selection Screen === -->
+            <div id="mode-selection-screen" class="space-y-6">
+                <h1 class="text-4xl font-extrabold text-center text-indigo-700">Hangman Challenge</h1>
+                <p class="text-center text-lg text-gray-700">How do you want to play?</p>
+                <button id="play-local-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Play Locally (Hot-Seat)
+                </button>
+                <button id="play-online-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Play Online with Friends
+                </button>
+            </div>
 
-        <!-- === Game Screen === -->
-        <div id="game-screen" class="hidden">
-            <!-- This is the container for the game elements -->
-            <div class="game-area-wrapper">
-                <!-- Mobile Score/Timer Display (Hidden on Desktop) -->
-                <div id="score-display-mobile" class="flex md:hidden justify-between items-start mb-4">
-                    <!-- Score & Round Display -->
-                    <div id="score-display" class="text-left">
-                        <h2 class="text-xl font-bold text-indigo-700">Score</h2>
-                        <p id="score-text" class="text-lg text-gray-700">You: 0 - Friend: 0</p>
-                        <p id="round-text" class="text-sm text-gray-500">Round 1 / 3</p>
-                    </div>
-                    <!-- Timer Display -->
-                    <div id="timer-display" class="text-right">
-                        <h2 class="text-xl font-bold text-red-600">Time Left</h2>
-                        <p id="timer-text" class="text-lg text-gray-700 font-mono font-bold">02:30</p>
-                    </div>
+            <!-- === Local Setup Screen === -->
+            <div id="local-setup-screen" class="hidden space-y-8">
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Local Game</h1>
+                <p class="text-center text-gray-700 text-lg">Enter a secret word or phrase. Vowels will be revealed automatically!</p>
+                <div>
+                    <label for="local-secret-word-input" class="block text-sm font-medium text-gray-700 mb-2">Secret Word</label>
+                    <input type="password" id="local-secret-word-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="e.g., The Matrix">
                 </div>
+                <button id="start-local-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Start Local Game
+                </button>
+                <p id="local-setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+                <button id="back-to-modes-local-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
+            </div>
 
-                <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-4">Guess the Word!</h1>
+            <!-- === Online Setup Screen === -->
+            <div id="online-setup-screen" class="hidden space-y-8">
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Online Game</h1>
                 
-                <!-- Hangman Drawing -->
-                <div class="flex justify-center mb-4 bg-gray-50 p-4 rounded-lg shadow-inner">
-                    <svg height="250" width="200" viewBox="0 0 200 250">
-                        <line id="gallows-base" x1="10" y1="230" x2="130" y2="230" class="hangman-part" style="stroke: #5a67d8;" />
-                        <line id="gallows-pole" x1="70" y1="230" x2="70" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
-                        <line id="gallows-beam" x1="70" y1="20" x2="170" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
-                        <line id="gallows-rope" x1="170" y1="20" x2="170" y2="50" class="hangman-part" style="stroke: #ef4444;" />
-                        <circle id="head" cx="170" cy="70" r="20" class="hangman-part" style="stroke: #ef4444; fill: #fee2e2;" />
-                        <line id="body" x1="170" y1="90" x2="170" y2="150" class="hangman-part" style="stroke: #ef4444;" />
-                        <line id="arm-left" x1="170" y1="110" x2="140" y2="130" class="hangman-part" style="stroke: #ef4444;" />
-                        <line id="arm-right" x1="170" y1="110" x2="200" y2="130" class="hangman-part" style="stroke: #ef4444;" />
-                        <line id="leg-left" x1="170" y1="150" x2="140" y2="180" class="hangman-part" style="stroke: #ef4444;" />
-                        <line id="leg-right" x1="170" y1="150" x2="200" y2="180" class="hangman-part" style="stroke: #ef4444;" />
-                    </svg>
-                </div>
-
-                <!-- Word Display -->
-                <div id="word-display" class="flex justify-center flex-wrap gap-x-3 md:gap-x-4 gap-y-2 mb-4 p-3 bg-indigo-50 rounded-lg shadow-inner text-indigo-900">
-                </div>
-
-                <!-- Wrong Guesses -->
-                <div class="mb-4 text-center bg-red-50 p-3 rounded-lg shadow-inner">
-                    <h2 class="text-base font-semibold text-red-700 uppercase tracking-wide">Wrong Guesses:</h2>
-                    <p id="wrong-guesses-display" class="text-2xl font-extrabold text-red-800 h-8 mt-1"></p>
-                </div>
-
-                <!-- Keyboard or Spectator View -->
-                <div id="keyboard-area" class="min-h-[160px]">
-                    <!-- Hint Button -->
-                    <div id="hint-area" class="text-center mb-4 hidden">
-                        <button id="hint-btn" class="bg-yellow-400 text-yellow-900 font-bold py-2 px-5 rounded-full shadow-lg hover:bg-yellow-500">
-                            💡 Get Hint (1 left)
-                        </button>
+                <!-- Create Game -->
+                <div class="border p-4 rounded-lg space-y-4">
+                    <h2 class="text-2xl font-bold text-gray-800 text-center">Create a Game</h2>
+                    <div>
+                        <label for="create-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                        <input type="text" id="create-name-input" maxlength="15" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
                     </div>
-                    <!-- Keyboard -->
-                    <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                    <!-- Avatar for Create -->
+                    <div class="avatar-container">
+                        <button class="avatar-button" id="create-avatar-prev">&lt;</button>
+                        <div class="avatar-display" id="create-avatar-display" style="background-color: #EF4444;"></div>
+                        <button class="avatar-button" id="create-avatar-next">&gt;</button>
                     </div>
-                    <!-- Spectator View -->
-                    <div id="spectator-view" class="hidden text-center text-gray-700">
-                        <p class="text-lg font-semibold">Your friend is guessing...</p>
-                        <p class="text-sm">You can chat or send reactions!</p>
-                    </div>
-                </div>
-
-
-                <!-- Game Over Message -->
-                <div id="game-message" class="text-center mt-6 space-y-5 hidden">
-                    <h2 id="message-text" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500 animate-pulse"></h2>
-                    <button id="play-again-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 shadow-xl text-xl transform hover:scale-[1.05]">
-                        Play Again
+                    <button id="create-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                        Create Game Room
                     </button>
                 </div>
+
+                <!-- Join Game -->
+                <div class="border p-4 rounded-lg space-y-4">
+                    <h2 class="text-2xl font-bold text-gray-800 text-center">Join a Game</h2>
+                    <div>
+                        <label for="join-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                        <input type="text" id="join-name-input" maxlength="15" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
+                    </div>
+                     <!-- Avatar for Join -->
+                     <div class="avatar-container">
+                        <button class="avatar-button" id="join-avatar-prev">&lt;</button>
+                        <div class="avatar-display" id="join-avatar-display" style="background-color: #3B82F6;"></div>
+                        <button class="avatar-button" id="join-avatar-next">&gt;</button>
+                    </div>
+                    <div>
+                        <label for="join-game-id" class="block text-sm font-medium text-gray-700 mb-2">Game ID</label>
+                        <input type="text" id="join-game-id" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter Game ID">
+                    </div>
+                    <button id="join-game-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                        Join Game
+                    </button>
+                </div>
+                
+                <p id="setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+                <p id="user-id-display" class="text-center text-gray-500 text-xs break-all"></p>
+                <button id="back-to-modes-online-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
             </div>
+
+            <!-- === Round Selection Screen === -->
+            <div id="round-selection-screen" class="hidden space-y-6">
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Set Match Length</h1>
+                <p class="text-center text-gray-700 text-lg">Choose how many rounds you want to play.</p>
+                <div class="space-y-3">
+                    <button data-rounds="3" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
+                        Quick Match (Best of 3)
+                    </button>
+                    <button data-rounds="7" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
+                        Normal Match (Best of 7)
+                    </button>
+                </div>
+                <!-- Custom Match -->
+                <div class="space-y-2">
+                    <button data-rounds="custom" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
+                        Custom Match
+                    </button>
+                    <input type="number" id="custom-rounds-input" min="1" max="99" class="hidden w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter total rounds (e.g., 5)">
+                </div>
+                <button id="set-rounds-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Start Match
+                </button>
+                <p id="round-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+            </div>
+
+
+            <!-- === Waiting Screen === -->
+            <div id="waiting-screen" class="hidden text-center space-y-6">
+                <h1 class="text-3xl font-extrabold text-indigo-700">Game Created!</h1>
+                <p class="text-lg text-gray-700">Share this code with your friend:</p>
+                
+                <!-- Share Code -->
+                <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
+                    <label for="game-id-display" class="block text-sm font-medium text-gray-700 mb-2">Game Code</label>
+                    <div class="flex">
+                        <input id="game-id-display" type="text" readonly class="w-full text-center text-2xl font-bold bg-white border border-gray-300 rounded-l-lg text-gray-800" value="Loading...">
+                        <button id="copy-game-id-btn" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-r-lg hover:bg-indigo-600 transition">Copy</button>
+                    </div>
+                </div>
+
+                <p class="text-lg text-gray-700">Waiting for a friend to join...</p>
+                <div class="loader"></div>
+                <button id="cancel-game-btn" class="text-sm text-red-600 hover:underline">Cancel Game</button>
+            </div>
+
+            <!-- === Set Word Screen (Online) === -->
+            <div id="set-word-screen" class="hidden space-y-8">
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Your Turn!</h1>
+                <p class="text-center text-gray-700 text-lg">Enter a secret word for your friend to guess. Vowels will be revealed.</p>
+                <div>
+                    <label for="online-secret-word-input" class="block text-sm font-medium text-gray-700 mb-2">Secret Word</label>
+                    <input type="password" id="online-secret-word-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="e.g., The Matrix">
+                </div>
+                <button id="set-online-word-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Set Word
+                </button>
+                <p id="set-word-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+            </div>
+
+            <!-- === Wait for Word Screen (Online) === -->
+            <div id="wait-for-word-screen" class="hidden text-center space-y-6">
+                <h1 class="text-3xl font-extrabold text-indigo-700">Get Ready!</h1>
+                <p class="text-lg text-gray-700">Your friend is picking a secret word...</p>
+                <div class="loader"></div>
+            </div>
+
+            <!-- === Game Screen === -->
+            <div id="game-screen" class="hidden">
+                <!-- This is the container for the game elements -->
+                <div class="game-area-wrapper">
+                    <!-- Mobile Score/Timer Display (Hidden on Desktop) -->
+                    <div id="score-display-mobile" class="flex md:hidden justify-between items-start mb-4">
+                        <!-- Score & Round Display -->
+                        <div id="score-display" class="text-left">
+                            <h2 class="text-xl font-bold text-indigo-700">Score</h2>
+                            <p id="score-text" class="text-lg text-gray-700">You: 0 - Friend: 0</p>
+                            <p id="round-text" class="text-sm text-gray-500">Round 1 / 3</p>
+                        </div>
+                        <!-- Timer Display -->
+                        <div id="timer-display" class="text-right">
+                            <h2 class="text-xl font-bold text-red-600">Time Left</h2>
+                            <p id="timer-text" class="text-lg text-gray-700 font-mono font-bold">02:30</p>
+                        </div>
+                    </div>
+
+                    <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-4">Guess the Word!</h1>
+                    
+                    <!-- Hangman Drawing -->
+                    <div class="flex justify-center mb-4 bg-gray-50 p-4 rounded-lg shadow-inner">
+                        <svg height="250" width="200" viewBox="0 0 200 250">
+                            <line id="gallows-base" x1="10" y1="230" x2="130" y2="230" class="hangman-part" style="stroke: #5a67d8;" />
+                            <line id="gallows-pole" x1="70" y1="230" x2="70" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
+                            <line id="gallows-beam" x1="70" y1="20" x2="170" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
+                            <line id="gallows-rope" x1="170" y1="20" x2="170" y2="50" class="hangman-part" style="stroke: #ef4444;" />
+                            <circle id="head" cx="170" cy="70" r="20" class="hangman-part" style="stroke: #ef4444; fill: #fee2e2;" />
+                            <line id="body" x1="170" y1="90" x2="170" y2="150" class="hangman-part" style="stroke: #ef4444;" />
+                            <line id="arm-left" x1="170" y1="110" x2="140" y2="130" class="hangman-part" style="stroke: #ef4444;" />
+                            <line id="arm-right" x1="170" y1="110" x2="200" y2="130" class="hangman-part" style="stroke: #ef4444;" />
+                            <line id="leg-left" x1="170" y1="150" x2="140" y2="180" class="hangman-part" style="stroke: #ef4444;" />
+                            <line id="leg-right" x1="170" y1="150" x2="200" y2="180" class="hangman-part" style="stroke: #ef4444;" />
+                        </svg>
+                    </div>
+
+                    <!-- Word Display -->
+                    <div id="word-display" class="flex justify-center flex-wrap gap-x-3 md:gap-x-4 gap-y-2 mb-4 p-3 bg-indigo-50 rounded-lg shadow-inner text-indigo-900">
+                    </div>
+
+                    <!-- Wrong Guesses -->
+                    <div class="mb-4 text-center bg-red-50 p-3 rounded-lg shadow-inner">
+                        <h2 class="text-base font-semibold text-red-700 uppercase tracking-wide">Wrong Guesses:</h2>
+                        <p id="wrong-guesses-display" class="text-2xl font-extrabold text-red-800 h-8 mt-1"></p>
+                    </div>
+
+                    <!-- Keyboard or Spectator View -->
+                    <div id="keyboard-area" class="min-h-[160px]">
+                        <!-- Hint Button -->
+                        <div id="hint-area" class="text-center mb-4 hidden">
+                            <button id="hint-btn" class="bg-yellow-400 text-yellow-900 font-bold py-2 px-5 rounded-full shadow-lg hover:bg-yellow-500">
+                                💡 Get Hint (1 left)
+                            </button>
+                        </div>
+                        <!-- Keyboard -->
+                        <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                        </div>
+                        <!-- Spectator View -->
+                        <div id="spectator-view" class="hidden text-center text-gray-700">
+                            <p class="text-lg font-semibold">Your friend is guessing...</p>
+                            <p class="text-sm">You can chat or send reactions!</p>
+                        </div>
+                    </div>
+
+
+                    <!-- Game Over Message -->
+                    <div id="game-message" class="text-center mt-6 space-y-5 hidden">
+                        <h2 id="message-text" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500 animate-pulse"></h2>
+                        <button id="play-again-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 shadow-xl text-xl transform hover:scale-[1.05]">
+                            Play Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- === Leaderboard Screen === -->
+            <div id="leaderboard-screen" class="hidden text-center space-y-6">
+                <h1 class="text-4xl font-extrabold text-indigo-700">Match Over!</h1>
+                <div id="winner-announcement" class="text-3xl font-bold text-green-600"></div>
+                <div class="bg-gray-100 p-6 rounded-lg shadow-inner space-y-4">
+                    <h2 class="text-2xl font-bold text-gray-800">Final Score</h2>
+                    <!-- Leaderboard Scores -->
+                    <div id="final-score-1" class="flex items-center justify-center gap-3 text-xl text-gray-700">
+                        <div id="final-avatar-1" class="avatar-display w-8 h-8" style="background-color: #EF4444;"></div>
+                        <span id="final-name-1">Player 1</span>:
+                        <span id="final-score-val-1" class="font-bold">0</span>
+                    </div>
+                    <div id="final-score-2" class="flex items-center justify-center gap-3 text-xl text-gray-700">
+                        <div id="final-avatar-2" class="avatar-display w-8 h-8" style="background-color: #3B82F6;"></div>
+                        <span id="final-name-2">Player 2</span>:
+                        <span id="final-score-val-2" class="font-bold">0</span>
+                    </div>
+                </div>
+                <button id="main-menu-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Back to Main Menu
+                </button>
+            </div>
+
         </div>
 
+        <!-- === DESKTOP CHAT WINDOW === -->
+        <div id="chat-window-desktop" class="hidden lg:flex flex-col overflow-hidden">
+            <!-- Chat Header -->
+            <div class="flex-shrink-0 flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg">
+                <h3 class="font-bold text-lg">Game Chat</h3>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div id="chat-messages-desktop" class="flex-1 p-3 space-y-3 overflow-y-auto bg-gray-50">
+                <!-- Messages will be injected here -->
+            </div>
 
-        <!-- === Leaderboard Screen === -->
-        <div id="leaderboard-screen" class="hidden text-center space-y-6">
-            <h1 class="text-4xl font-extrabold text-indigo-700">Match Over!</h1>
-            <div id="winner-announcement" class="text-3xl font-bold text-green-600"></div>
-            <div class="bg-gray-100 p-6 rounded-lg shadow-inner space-y-4">
-                <h2 class="text-2xl font-bold text-gray-800">Final Score</h2>
-                <!-- Leaderboard Scores -->
-                <div id="final-score-1" class="flex items-center justify-center gap-3 text-xl text-gray-700">
-                    <div id="final-avatar-1" class="avatar-display w-8 h-8" style="background-color: #EF4444;"></div>
-                    <span id="final-name-1">Player 1</span>:
-                    <span id="final-score-val-1" class="font-bold">0</span>
-                </div>
-                <div id="final-score-2" class="flex items-center justify-center gap-3 text-xl text-gray-700">
-                    <div id="final-avatar-2" class="avatar-display w-8 h-8" style="background-color: #3B82F6;"></div>
-                    <span id="final-name-2">Player 2</span>:
-                    <span id="final-score-val-2" class="font-bold">0</span>
+            <!-- Emoji Reactions -->
+            <div class="flex-shrink-0 p-2 bg-gray-100 border-t border-b border-gray-200">
+                <div id="emoji-reaction-bar-desktop" class="flex justify-around">
+                    <button class="emoji-reaction-btn-desktop p-1" data-emoji="👍">👍</button>
+                    <button class="emoji-reaction-btn-desktop p-1" data-emoji="😂">😂</button>
+                    <button class="emoji-reaction-btn-desktop p-1" data-emoji="😮">😮</button>
+                    <button class="emoji-reaction-btn-desktop p-1" data-emoji="👏">👏</button>
+                    <button class="emoji-reaction-btn-desktop p-1" data-emoji="😬">😬</button>
                 </div>
             </div>
-            <button id="main-menu-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                Back to Main Menu
-            </button>
+
+            <!-- Chat Input -->
+            <form id="chat-form-desktop" class="flex-shrink-0 flex p-3 border-t border-gray-200">
+                <input id="chat-input-desktop" type="text" class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Type a message..." autocomplete="off">
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-r-lg font-semibold hover:bg-indigo-700">Send</button>
+            </form>
         </div>
+    </main>
 
-    </div>
 
-    <!-- === CHAT ICON === -->
-    <button id="chat-toggle-btn" class="hidden w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50">
+    <!-- === CHAT ICON (Mobile) === -->
+    <button id="chat-icon-btn" class="hidden w-16 h-16 bg-indigo-600 text-white rounded-full lg:hidden items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50">
         <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
     </button>
 
-    <!-- === CHAT POPUP === -->
-    <div id="chat-popup" class="hidden scale-0">
+    <!-- === CHAT POPUP (Mobile) === -->
+    <div id="chat-popup-mobile" class="hidden scale-0 lg:hidden flex-col bg-white border border-gray-300 rounded-xl shadow-2xl overflow-hidden">
         <!-- Chat Header -->
         <div class="flex justify-between items-center p-3 bg-indigo-600 text-white">
             <h3 class="font-bold text-lg">Game Chat</h3>
@@ -588,24 +670,24 @@
         </div>
         
         <!-- Chat Messages -->
-        <div id="chat-messages" class="flex-1 p-3 space-y-3 overflow-y-auto bg-gray-50">
+        <div id="chat-messages-mobile" class="flex-1 p-3 space-y-3 overflow-y-auto bg-gray-50">
             <!-- Messages will be injected here -->
         </div>
 
         <!-- Emoji Reactions -->
         <div class="p-2 bg-gray-100 border-t border-gray-200">
-            <div id="emoji-reaction-bar" class="flex justify-around">
-                <button class="emoji-reaction-btn p-1" data-emoji="👍">👍</button>
-                <button class="emoji-reaction-btn p-1" data-emoji="😂">😂</button>
-                <button class="emoji-reaction-btn p-1" data-emoji="😮">😮</button>
-                <button class="emoji-reaction-btn p-1" data-emoji="👏">👏</button>
-                <button class="emoji-reaction-btn p-1" data-emoji="😬">😬</button>
+            <div id="emoji-reaction-bar-mobile" class="flex justify-around">
+                <button class="emoji-reaction-btn-mobile p-1" data-emoji="👍">👍</button>
+                <button class="emoji-reaction-btn-mobile p-1" data-emoji="😂">😂</button>
+                <button class="emoji-reaction-btn-mobile p-1" data-emoji="😮">😮</button>
+                <button class="emoji-reaction-btn-mobile p-1" data-emoji="👏">👏</button>
+                <button class="emoji-reaction-btn-mobile p-1" data-emoji="😬">😬</button>
             </div>
         </div>
 
         <!-- Chat Input -->
-        <form id="chat-form" class="flex p-3 border-t border-gray-200">
-            <input id="chat-input" type="text" class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Type a message..." autocomplete="off">
+        <form id="chat-form-mobile" class="flex p-3 border-t border-gray-200">
+            <input id="chat-input-mobile" type="text" class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Type a message..." autocomplete="off">
             <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-r-lg font-semibold hover:bg-indigo-700">Send</button>
         </form>
     </div>
@@ -636,7 +718,6 @@
             serverTimestamp,
             setLogLevel
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
 
         // --- FIREBASE CONFIGURATION (MANUALLY INSERTED) ---
         const firebaseConfig = {
@@ -751,14 +832,21 @@
         const finalScoreVal2 = document.getElementById('final-score-val-2');
         const mainMenuBtn = document.getElementById('main-menu-btn');
 
-        // Chat
-        const chatToggleBtn = document.getElementById('chat-toggle-btn');
-        const chatPopup = document.getElementById('chat-popup');
+        // Chat (Mobile)
+        const chatToggleBtn = document.getElementById('chat-icon-btn');
+        const chatPopupMobile = document.getElementById('chat-popup-mobile');
         const chatCloseBtn = document.getElementById('chat-close-btn');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatForm = document.getElementById('chat-form');
-        const chatInput = document.getElementById('chat-input');
-        const emojiReactionBar = document.getElementById('emoji-reaction-bar');
+        const chatMessagesMobile = document.getElementById('chat-messages-mobile');
+        const chatFormMobile = document.getElementById('chat-form-mobile');
+        const chatInputMobile = document.getElementById('chat-input-mobile');
+        const emojiReactionBarMobile = document.getElementById('emoji-reaction-bar-mobile');
+
+        // Chat (Desktop)
+        const chatWindowDesktop = document.getElementById('chat-window-desktop');
+        const chatMessagesDesktop = document.getElementById('chat-messages-desktop');
+        const chatFormDesktop = document.getElementById('chat-form-desktop');
+        const chatInputDesktop = document.getElementById('chat-input-desktop');
+        const emojiReactionBarDesktop = document.getElementById('emoji-reaction-bar-desktop');
 
         // Emoji Reaction Display
         const emojiDisplayArea = document.getElementById('emoji-display-area');
@@ -906,8 +994,9 @@
             gameScreen.classList.add('hidden');
             leaderboardScreen.classList.add('hidden');
             chatToggleBtn.classList.add('hidden');
-            chatPopup.classList.add('scale-0');
-            chatPopup.classList.add('hidden');
+            chatPopupMobile.classList.add('scale-0');
+            chatPopupMobile.classList.add('hidden');
+            chatWindowDesktop.classList.add('hidden'); // Hide desktop chat
             timerDisplay.classList.add('hidden');
             playerInfoBox.classList.add('hidden'); // Hide new player box
             scoreDisplayMobile.classList.add('hidden'); // Hide mobile score display
@@ -915,10 +1004,12 @@
         }
 
         function showGameScreens() {
-            gameContainer.classList.add('in-game'); // Add special padding
+            // Mobile
             chatToggleBtn.classList.remove('hidden');
-            playerInfoBox.classList.remove('hidden');
             scoreDisplayMobile.classList.remove('hidden');
+            // Desktop
+            playerInfoBox.classList.remove('hidden');
+            chatWindowDesktop.classList.remove('hidden');
         }
 
         function disableOnlineButtons() {
@@ -1020,8 +1111,10 @@
         // Chat listeners
         chatToggleBtn.addEventListener('click', toggleChatPopup);
         chatCloseBtn.addEventListener('click', toggleChatPopup);
-        chatForm.addEventListener('submit', handleChatSubmit);
-        emojiReactionBar.addEventListener('click', handleEmojiClick);
+        chatFormMobile.addEventListener('submit', handleChatSubmit);
+        emojiReactionBarMobile.addEventListener('click', handleEmojiClick);
+        chatFormDesktop.addEventListener('submit', handleChatSubmit);
+        emojiReactionBarDesktop.addEventListener('click', handleEmojiClick);
 
         // --- URL Handling ---
         function checkUrlForGameId() {
@@ -1256,6 +1349,7 @@
                 } else {
                     chatToggleBtn.classList.add('hidden');
                     playerInfoBox.classList.add('hidden');
+                    chatWindowDesktop.classList.add('hidden');
                 }
 
                 // Render score for all active states
@@ -1342,7 +1436,8 @@
             if (chatUnsubscribe) chatUnsubscribe();
             
             chatUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                chatMessages.innerHTML = '';
+                chatMessagesMobile.innerHTML = ''; // Clear mobile chat
+                chatMessagesDesktop.innerHTML = ''; // Clear desktop chat
                 querySnapshot.docs.reverse().forEach(doc => { // Show oldest first
                     renderChatMessage(doc.data());
                 });
@@ -1904,31 +1999,36 @@
 
         // --- CHAT FUNCTIONS ---
         function toggleChatPopup() {
-            chatPopup.classList.toggle('hidden');
+            chatPopupMobile.classList.toggle('hidden');
             setTimeout(() => {
-                chatPopup.classList.toggle('scale-0');
-                chatPopup.classList.toggle('scale-100');
+                chatPopupMobile.classList.toggle('scale-0');
+                chatPopupMobile.classList.toggle('scale-100');
             }, 10); // Short delay to allow 'hidden' to apply first
         }
 
         async function handleChatSubmit(e) {
             e.preventDefault();
-            const messageText = chatInput.value.trim();
+            
+            // Get text from either mobile or desktop input
+            const isMobile = e.target.id === 'chat-form-mobile';
+            const input = isMobile ? chatInputMobile : chatInputDesktop;
+            const messageText = input.value.trim();
+            
             if (messageText.length === 0) return;
 
             // Anti-cheat check
             if (secretWord && messageText.toUpperCase().includes(secretWord) && secretWord.length > 2) {
-                chatInput.value = '';
+                input.value = '';
                 showChatError("You can't send the secret word!");
                 return;
             }
 
             await sendChatMessage(messageText);
-            chatInput.value = '';
+            input.value = '';
         }
         
         async function handleEmojiClick(e) {
-            if (e.target.classList.contains('emoji-reaction-btn')) {
+            if (e.target.classList.contains('emoji-reaction-btn-mobile') || e.target.classList.contains('emoji-reaction-btn-desktop')) {
                 const emoji = e.target.dataset.emoji;
                 await sendChatMessage(emoji, true);
             }
@@ -1963,51 +2063,60 @@
             }
         }
 
+    
         function renderChatMessage(data) {
             if (!data) return;
-            const isMe = data.senderId === userId;
-            const playerData = currentRoomData.players[data.senderId];
-            const playerName = playerData?.name || "Player";
-            const playerColor = playerData?.avatar || "#6B7280"; // default gray
             
-            const msgDiv = document.createElement('div');
-            
-            if (data.isEmoji) {
-                // Emoji message
-                msgDiv.classList.add('text-5xl', isMe ? 'text-right' : 'text-left');
-                msgDiv.textContent = data.text;
-            } else {
-                // Text message
-                msgDiv.classList.add('w-full', 'flex', 'flex-col', isMe ? 'items-end' : 'items-start');
+            // Render to both mobile and desktop chats
+            [chatMessagesMobile, chatMessagesDesktop].forEach(chatBox => {
+                if (!chatBox) return; // Add check
+                const isMe = data.senderId === userId;
+                const playerData = currentRoomData.players[data.senderId];
+                const playerName = playerData?.name || "Player";
+                const playerColor = playerData?.avatar || "#6B7280"; // default gray
                 
-                const nameSpan = document.createElement('span');
-                nameSpan.classList.add('text-xs', 'font-semibold', 'mb-1', 'px-2');
-                nameSpan.textContent = isMe ? "You" : playerName;
-                nameSpan.style.color = isMe ? '#4F46E5' : playerColor; // My color vs Opponent color
-
-                const bubble = document.createElement('div');
-                bubble.classList.add('p-3', 'rounded-2xl', 'max-w-[75%]', 'shadow', 'break-words');
-                bubble.textContent = data.text;
+                const msgDiv = document.createElement('div');
                 
-                if (isMe) {
-                    bubble.classList.add('bg-indigo-500', 'text-white', 'rounded-br-none');
+                if (data.isEmoji) {
+                    // Emoji message
+                    msgDiv.classList.add('text-5xl', isMe ? 'text-right' : 'text-left');
+                    msgDiv.textContent = data.text;
                 } else {
-                    bubble.classList.add('bg-gray-200', 'text-gray-800', 'rounded-bl-none');
+                    // Text message
+                    msgDiv.classList.add('w-full', 'flex', 'flex-col', isMe ? 'items-end' : 'items-start');
+                    
+                    const nameSpan = document.createElement('span');
+                    nameSpan.classList.add('text-xs', 'font-semibold', 'mb-1', 'px-2');
+                    nameSpan.textContent = isMe ? "You" : playerName;
+                    nameSpan.style.color = isMe ? '#4F46E5' : playerColor; // My color vs Opponent color
+
+                    const bubble = document.createElement('div');
+                    bubble.classList.add('p-3', 'rounded-2xl', 'max-w-[75%]', 'shadow', 'break-words');
+                    bubble.textContent = data.text;
+                    
+                    if (isMe) {
+                        bubble.classList.add('bg-indigo-500', 'text-white', 'rounded-br-none');
+                    } else {
+                        bubble.classList.add('bg-gray-200', 'text-gray-800', 'rounded-bl-none');
+                    }
+                    msgDiv.appendChild(nameSpan);
+                    msgDiv.appendChild(bubble);
                 }
-                msgDiv.appendChild(nameSpan);
-                msgDiv.appendChild(bubble);
-            }
-            
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+                
+                chatBox.appendChild(msgDiv);
+                chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+            });
         }
         
         function showChatError(message) {
-            const errorDiv = document.createElement('div');
-            errorDiv.classList.add('w-full', 'text-center', 'text-red-500', 'text-sm', 'italic');
-            errorDiv.textContent = message;
-            chatMessages.appendChild(errorDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+            [chatMessagesMobile, chatMessagesDesktop].forEach(chatBox => {
+                if (!chatBox) return; // Add check
+                const errorDiv = document.createElement('div');
+                errorDiv.classList.add('w-full', 'text-center', 'text-red-500', 'text-sm', 'italic');
+                errorDiv.textContent = message;
+                chatBox.appendChild(errorDiv);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
         }
         
         function showEmojiReaction(emoji) {
@@ -2023,6 +2132,10 @@
         checkUrlForGameId(); // Check for game invite on load
         updateAvatar(createAvatarDisplay, createAvatarIndex);
         updateAvatar(joinAvatarDisplay, joinAvatarIndex);
+        
+        // MANUALLY HIDE DESKTOP PANELS ON LOAD
+        playerInfoBox.classList.add('hidden');
+        chatWindowDesktop.classList.add('hidden');
 
     </script>
 </body>
