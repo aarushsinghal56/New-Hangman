@@ -12,7 +12,21 @@
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(to right bottom, #6366f1, #22d3ee); /* Indigo 500 to Cyan 400 gradient */
+            overflow-x: hidden; /* Prevent horizontal scroll */
         }
+        /* Main game container */
+        .game-container {
+            position: relative;
+            max-width: 512px; /* 2xl */
+            width: 100%;
+            background-color: white;
+            border-radius: 1.5rem; /* 2xl */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            padding: 2.5rem; /* p-10 */
+            margin: 1rem; /* p-4 */
+        }
+        /* REMOVED the .in-game padding styles */
+        
         /* Style for the hangman SVG parts */
         .hangman-part {
             fill: none;
@@ -59,13 +73,13 @@
 
         /* --- CHAT POPUP STYLES --- */
         #chat-icon-btn {
-            position: absolute;
+            position: fixed; /* CHANGED to fixed */
             bottom: 1.5rem; /* 24px */
             right: 1.5rem; /* 24px */
             z-index: 50;
         }
         #chat-popup {
-            position: absolute;
+            position: fixed; /* CHANGED to fixed */
             bottom: 5rem; /* 80px */
             right: 1.5rem; /* 24px */
             width: 300px;
@@ -133,12 +147,186 @@
             cursor: not-allowed;
             background-color: #d1d5db; /* gray-300 */
         }
+
+        /* Avatar Customizer */
+        .avatar-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .avatar-button {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.5rem;
+            color: #4a5568; /* gray-700 */
+        }
+        .avatar-button:hover {
+            color: #2d3748; /* gray-900 */
+        }
+        .avatar-display {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid #333; /* Dark border for visibility */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem; /* For the crown */
+            position: relative;
+        }
+        .avatar-crown {
+            position: absolute;
+            top: -10px;
+            font-size: 1rem;
+        }
+
+        /* === NEW PLAYER INFO BOX === */
+        #player-info-box {
+            position: fixed; /* CHANGED to fixed */
+            top: 2.5rem; /* p-10 */
+            left: 2.5rem; /* p-10 */
+            width: 220px;
+            background-color: rgba(239, 246, 255, 0.9); /* blue-50 with opacity */
+            border: 1px solid #bfdbfe; /* blue-200 */
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            z-index: 30;
+            transition: all 0.3s ease-in-out;
+            transform-origin: top left;
+        }
+        #player-info-box.hidden {
+            transform: scale(0.9) translateX(-10%);
+            opacity: 0;
+            pointer-events: none;
+        }
+        /* Hide on mobile, show old display */
+        @media (max-width: 767px) {
+            #player-info-box {
+                display: none !important; /* Force hide on mobile */
+            }
+        }
+        /* Show on desktop (will be controlled by JS adding/removing 'hidden') */
+        @media (min-width: 768px) {
+            #score-display-mobile {
+                display: none;
+            }
+        }
+
+        #player-info-round {
+            text-align: center;
+            font-size: 1.125rem; /* xl */
+            font-weight: bold;
+            color: #374151; /* gray-700 */
+            border-bottom: 2px solid #6366f1; /* indigo-500 */
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .player-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            border: 2px solid transparent;
+        }
+        .player-info-item.active-player {
+            border-color: #6366f1; /* indigo-500 */
+            background-color: #fff;
+        }
+        .player-info-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #333;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .player-info-crown {
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1rem;
+            color: #f59e0b; /* amber-500 */
+            text-shadow: 0 0 2px rgba(0,0,0,0.5);
+        }
+        .player-info-name {
+            font-weight: 600; /* semibold */
+            color: #333;
+            flex-grow: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .player-info-score {
+            font-weight: bold;
+            color: #4f46e5; /* indigo-600 */
+            font-size: 1.125rem; /* xl */
+        }
+        .player-info-timer {
+            text-align: center;
+            font-size: 1.875rem; /* 3xl */
+            font-weight: bold;
+            color: #ef4444; /* red-500 */
+            margin-top: 0.5rem;
+            background-color: #fee2e2; /* red-100 */
+            padding: 0.25rem 0.5rem;
+            border-radius: 8px;
+            font-family: 'monospace';
+            animation: pulse-timer 1.5s infinite;
+        }
+        @keyframes pulse-timer {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.03); opacity: 0.95; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
 
+    <!-- === NEW PLAYER INFO BOX (Desktop) === -->
+    <!-- Moved OUTSIDE the main container -->
+    <div id="player-info-box" class="hidden md:flex flex-col gap-3">
+        <!-- Round -->
+        <div id="player-info-round">
+            <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+            <span>Round 1 / 3</span>
+        </div>
+        
+        <!-- Player 1 (Me) -->
+        <div id="player-info-me" class="player-info-item">
+            <div id="player-info-me-avatar" class="player-info-avatar" style="background-color: #EF4444;">
+                <div id="player-info-me-crown" class="player-info-crown hidden">👑</div>
+            </div>
+            <span id="player-info-me-name" class="player-info-name">You</span>
+            <span id="player-info-me-score" class="player-info-score">0</span>
+        </div>
+        
+        <!-- Player 2 (Friend) -->
+        <div id="player-info-friend" class="player-info-item">
+            <div id="player-info-friend-avatar" class="player-info-avatar" style="background-color: #3B82F6;">
+                <div id="player-info-friend-crown" class="player-info-crown hidden">👑</div>
+            </div>
+            <span id="player-info-friend-name" class="player-info-name">Friend</span>
+            <span id="player-info-friend-score" class="player-info-score">0</span>
+        </div>
+
+        <!-- Timer -->
+        <div id="player-info-timer" class="player-info-timer">
+            02:30
+        </div>
+    </div>
+
     <!-- This is the main container for the game -->
-    <div class="container relative mx-auto max-w-lg w-full bg-white rounded-2xl shadow-2xl p-6 md:p-10 transform transition-all duration-300 ease-in-out scale-100">
+    <div class="game-container" id="game-container">
         
         <!-- === Mode Selection Screen === -->
         <div id="mode-selection-screen" class="space-y-6">
@@ -170,14 +358,19 @@
         <!-- === Online Setup Screen === -->
         <div id="online-setup-screen" class="hidden space-y-8">
             <h1 class="text-3xl font-extrabold text-center text-indigo-700">Online Game</h1>
-            <p id="join-invite-message" class="text-center text-lg text-green-700 font-semibold hidden"></p>
             
             <!-- Create Game -->
             <div class="border p-4 rounded-lg space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Create a Game</h2>
                 <div>
                     <label for="create-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                    <input type="text" id="create-name-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
+                    <input type="text" id="create-name-input" maxlength="15" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
+                </div>
+                <!-- Avatar for Create -->
+                <div class="avatar-container">
+                    <button class="avatar-button" id="create-avatar-prev">&lt;</button>
+                    <div class="avatar-display" id="create-avatar-display" style="background-color: #EF4444;"></div>
+                    <button class="avatar-button" id="create-avatar-next">&gt;</button>
                 </div>
                 <button id="create-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
                     Create Game Room
@@ -189,7 +382,13 @@
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Join a Game</h2>
                 <div>
                     <label for="join-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
-                    <input type="text" id="join-name-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
+                    <input type="text" id="join-name-input" maxlength="15" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
+                </div>
+                 <!-- Avatar for Join -->
+                 <div class="avatar-container">
+                    <button class="avatar-button" id="join-avatar-prev">&lt;</button>
+                    <div class="avatar-display" id="join-avatar-display" style="background-color: #3B82F6;"></div>
+                    <button class="avatar-button" id="join-avatar-next">&gt;</button>
                 </div>
                 <div>
                     <label for="join-game-id" class="block text-sm font-medium text-gray-700 mb-2">Game ID</label>
@@ -273,75 +472,80 @@
 
         <!-- === Game Screen === -->
         <div id="game-screen" class="hidden">
-            <div class="flex justify-between items-start mb-4">
-                <!-- Score & Round Display -->
-                <div id="score-display" class="text-left">
-                    <h2 class="text-xl font-bold text-indigo-700">Score</h2>
-                    <p id="score-text" class="text-lg text-gray-700">You: 0 - Friend: 0</p>
-                    <p id="round-text" class="text-sm text-gray-500">Round 1 / 3</p>
+            <!-- This is the container for the game elements -->
+            <div class="game-area-wrapper">
+                <!-- Mobile Score/Timer Display (Hidden on Desktop) -->
+                <div id="score-display-mobile" class="flex md:hidden justify-between items-start mb-4">
+                    <!-- Score & Round Display -->
+                    <div id="score-display" class="text-left">
+                        <h2 class="text-xl font-bold text-indigo-700">Score</h2>
+                        <p id="score-text" class="text-lg text-gray-700">You: 0 - Friend: 0</p>
+                        <p id="round-text" class="text-sm text-gray-500">Round 1 / 3</p>
+                    </div>
+                    <!-- Timer Display -->
+                    <div id="timer-display" class="text-right">
+                        <h2 class="text-xl font-bold text-red-600">Time Left</h2>
+                        <p id="timer-text" class="text-lg text-gray-700 font-mono font-bold">02:30</p>
+                    </div>
                 </div>
-                <!-- Timer Display -->
-                <div id="timer-display" class="text-right">
-                    <h2 class="text-xl font-bold text-red-600">Time Left</h2>
-                    <p id="timer-text" class="text-lg text-gray-700 font-mono font-bold">02:30</p>
+
+                <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-4">Guess the Word!</h1>
+                
+                <!-- Hangman Drawing -->
+                <div class="flex justify-center mb-4 bg-gray-50 p-4 rounded-lg shadow-inner">
+                    <svg height="250" width="200" viewBox="0 0 200 250">
+                        <line id="gallows-base" x1="10" y1="230" x2="130" y2="230" class="hangman-part" style="stroke: #5a67d8;" />
+                        <line id="gallows-pole" x1="70" y1="230" x2="70" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
+                        <line id="gallows-beam" x1="70" y1="20" x2="170" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
+                        <line id="gallows-rope" x1="170" y1="20" x2="170" y2="50" class="hangman-part" style="stroke: #ef4444;" />
+                        <circle id="head" cx="170" cy="70" r="20" class="hangman-part" style="stroke: #ef4444; fill: #fee2e2;" />
+                        <line id="body" x1="170" y1="90" x2="170" y2="150" class="hangman-part" style="stroke: #ef4444;" />
+                        <line id="arm-left" x1="170" y1="110" x2="140" y2="130" class="hangman-part" style="stroke: #ef4444;" />
+                        <line id="arm-right" x1="170" y1="110" x2="200" y2="130" class="hangman-part" style="stroke: #ef4444;" />
+                        <line id="leg-left" x1="170" y1="150" x2="140" y2="180" class="hangman-part" style="stroke: #ef4444;" />
+                        <line id="leg-right" x1="170" y1="150" x2="200" y2="180" class="hangman-part" style="stroke: #ef4444;" />
+                    </svg>
                 </div>
-            </div>
 
-            <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-4">Guess the Word!</h1>
-            
-            <!-- Hangman Drawing -->
-            <div class="flex justify-center mb-4 bg-gray-50 p-4 rounded-lg shadow-inner">
-                <svg height="250" width="200" viewBox="0 0 200 250">
-                    <line id="gallows-base" x1="10" y1="230" x2="130" y2="230" class="hangman-part" style="stroke: #5a67d8;" />
-                    <line id="gallows-pole" x1="70" y1="230" x2="70" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
-                    <line id="gallows-beam" x1="70" y1="20" x2="170" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
-                    <line id="gallows-rope" x1="170" y1="20" x2="170" y2="50" class="hangman-part" style="stroke: #ef4444;" />
-                    <circle id="head" cx="170" cy="70" r="20" class="hangman-part" style="stroke: #ef4444; fill: #fee2e2;" />
-                    <line id="body" x1="170" y1="90" x2="170" y2="150" class="hangman-part" style="stroke: #ef4444;" />
-                    <line id="arm-left" x1="170" y1="110" x2="140" y2="130" class="hangman-part" style="stroke: #ef4444;" />
-                    <line id="arm-right" x1="170" y1="110" x2="200" y2="130" class="hangman-part" style="stroke: #ef4444;" />
-                    <line id="leg-left" x1="170" y1="150" x2="140" y2="180" class="hangman-part" style="stroke: #ef4444;" />
-                    <line id="leg-right" x1="170" y1="150" x2="200" y2="180" class="hangman-part" style="stroke: #ef4444;" />
-                </svg>
-            </div>
+                <!-- Word Display -->
+                <div id="word-display" class="flex justify-center flex-wrap gap-x-3 md:gap-x-4 gap-y-2 mb-4 p-3 bg-indigo-50 rounded-lg shadow-inner text-indigo-900">
+                </div>
 
-            <!-- Word Display -->
-            <div id="word-display" class="flex justify-center flex-wrap gap-x-3 md:gap-x-4 gap-y-2 mb-4 p-3 bg-indigo-50 rounded-lg shadow-inner text-indigo-900">
-            </div>
+                <!-- Wrong Guesses -->
+                <div class="mb-4 text-center bg-red-50 p-3 rounded-lg shadow-inner">
+                    <h2 class="text-base font-semibold text-red-700 uppercase tracking-wide">Wrong Guesses:</h2>
+                    <p id="wrong-guesses-display" class="text-2xl font-extrabold text-red-800 h-8 mt-1"></p>
+                </div>
 
-            <!-- Wrong Guesses -->
-            <div class="mb-4 text-center bg-red-50 p-3 rounded-lg shadow-inner">
-                <h2 class="text-base font-semibold text-red-700 uppercase tracking-wide">Wrong Guesses:</h2>
-                <p id="wrong-guesses-display" class="text-2xl font-extrabold text-red-800 h-8 mt-1"></p>
-            </div>
+                <!-- Keyboard or Spectator View -->
+                <div id="keyboard-area" class="min-h-[160px]">
+                    <!-- Hint Button -->
+                    <div id="hint-area" class="text-center mb-4 hidden">
+                        <button id="hint-btn" class="bg-yellow-400 text-yellow-900 font-bold py-2 px-5 rounded-full shadow-lg hover:bg-yellow-500">
+                            💡 Get Hint (1 left)
+                        </button>
+                    </div>
+                    <!-- Keyboard -->
+                    <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                    </div>
+                    <!-- Spectator View -->
+                    <div id="spectator-view" class="hidden text-center text-gray-700">
+                        <p class="text-lg font-semibold">Your friend is guessing...</p>
+                        <p class="text-sm">You can chat or send reactions!</p>
+                    </div>
+                </div>
 
-            <!-- Keyboard or Spectator View -->
-            <div id="keyboard-area" class="min-h-[160px]">
-                <!-- Hint Button -->
-                <div id="hint-area" class="text-center mb-4 hidden">
-                    <button id="hint-btn" class="bg-yellow-400 text-yellow-900 font-bold py-2 px-5 rounded-full shadow-lg hover:bg-yellow-500">
-                        💡 Get Hint (1 left)
+
+                <!-- Game Over Message -->
+                <div id="game-message" class="text-center mt-6 space-y-5 hidden">
+                    <h2 id="message-text" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500 animate-pulse"></h2>
+                    <button id="play-again-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 shadow-xl text-xl transform hover:scale-[1.05]">
+                        Play Again
                     </button>
                 </div>
-                <!-- Keyboard -->
-                <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
-                </div>
-                <!-- Spectator View -->
-                <div id="spectator-view" class="hidden text-center text-gray-700">
-                    <p class="text-lg font-semibold">Your friend is guessing...</p>
-                    <p class="text-sm">You can chat or send reactions!</p>
-                </div>
-            </div>
-
-
-            <!-- Game Over Message -->
-            <div id="game-message" class="text-center mt-6 space-y-5 hidden">
-                <h2 id="message-text" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500 animate-pulse"></h2>
-                <button id="play-again-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 shadow-xl text-xl transform hover:scale-[1.05]">
-                    Play Again
-                </button>
             </div>
         </div>
+
 
         <!-- === Leaderboard Screen === -->
         <div id="leaderboard-screen" class="hidden text-center space-y-6">
@@ -349,8 +553,17 @@
             <div id="winner-announcement" class="text-3xl font-bold text-green-600"></div>
             <div class="bg-gray-100 p-6 rounded-lg shadow-inner space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800">Final Score</h2>
-                <div id="final-score-you" class="text-xl text-gray-700">You: 0</div>
-                <div id="final-score-friend" class="text-xl text-gray-700">Friend: 0</div>
+                <!-- Leaderboard Scores -->
+                <div id="final-score-1" class="flex items-center justify-center gap-3 text-xl text-gray-700">
+                    <div id="final-avatar-1" class="avatar-display w-8 h-8" style="background-color: #EF4444;"></div>
+                    <span id="final-name-1">Player 1</span>:
+                    <span id="final-score-val-1" class="font-bold">0</span>
+                </div>
+                <div id="final-score-2" class="flex items-center justify-center gap-3 text-xl text-gray-700">
+                    <div id="final-avatar-2" class="avatar-display w-8 h-8" style="background-color: #3B82F6;"></div>
+                    <span id="final-name-2">Player 2</span>:
+                    <span id="final-score-val-2" class="font-bold">0</span>
+                </div>
             </div>
             <button id="main-menu-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
                 Back to Main Menu
@@ -358,12 +571,12 @@
         </div>
 
         <!-- === CHAT ICON === -->
-        <button id="chat-toggle-btn" class="hidden absolute bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50">
+        <button id="chat-toggle-btn" class="hidden w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50">
             <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
         </button>
 
         <!-- === CHAT POPUP === -->
-        <div id="chat-popup" class="hidden absolute bottom-24 right-6 w-80 h-96 flex-col bg-white border border-gray-300 rounded-xl shadow-2xl overflow-hidden scale-0 z-40">
+        <div id="chat-popup" class="hidden scale-0">
             <!-- Chat Header -->
             <div class="flex justify-between items-center p-3 bg-indigo-600 text-white">
                 <h3 class="font-bold text-lg">Game Chat</h3>
@@ -438,6 +651,7 @@
 
 
         // --- DOM Elements ---
+        const gameContainer = document.getElementById('game-container'); // Get main container
         const modeSelectionScreen = document.getElementById('mode-selection-screen');
         const localSetupScreen = document.getElementById('local-setup-screen');
         const onlineSetupScreen = document.getElementById('online-setup-screen');
@@ -447,7 +661,6 @@
         const waitForWordScreen = document.getElementById('wait-for-word-screen');
         const gameScreen = document.getElementById('game-screen');
         const leaderboardScreen = document.getElementById('leaderboard-screen');
-        const joinInviteMessage = document.getElementById('join-invite-message');
         
         // Mode buttons
         const playLocalBtn = document.getElementById('play-local-btn');
@@ -469,6 +682,14 @@
         const userIdDisplay = document.getElementById('user-id-display');
         const backToModesOnlineBtn = document.getElementById('back-to-modes-online-btn');
 
+        // Avatar Pickers
+        const createAvatarPrev = document.getElementById('create-avatar-prev');
+        const createAvatarDisplay = document.getElementById('create-avatar-display');
+        const createAvatarNext = document.getElementById('create-avatar-next');
+        const joinAvatarPrev = document.getElementById('join-avatar-prev');
+        const joinAvatarDisplay = document.getElementById('join-avatar-display');
+        const joinAvatarNext = document.getElementById('join-avatar-next');
+
         // Round Selection
         const roundButtons = document.querySelectorAll('.round-btn');
         const customRoundsInput = document.getElementById('custom-rounds-input');
@@ -486,11 +707,29 @@
         const cancelGameBtn = document.getElementById('cancel-game-btn');
         
         // Game screen
+        const scoreDisplayMobile = document.getElementById('score-display-mobile');
         const scoreDisplay = document.getElementById('score-display');
         const scoreText = document.getElementById('score-text');
         const roundText = document.getElementById('round-text');
         const timerDisplay = document.getElementById('timer-display');
         const timerText = document.getElementById('timer-text');
+        
+        // New Player Info Box (Desktop)
+        const playerInfoBox = document.getElementById('player-info-box');
+        const playerInfoRound = document.getElementById('player-info-round');
+        const playerInfoMe = document.getElementById('player-info-me');
+        const playerInfoMeAvatar = document.getElementById('player-info-me-avatar');
+        const playerInfoMeCrown = document.getElementById('player-info-me-crown');
+        const playerInfoMeName = document.getElementById('player-info-me-name');
+        const playerInfoMeScore = document.getElementById('player-info-me-score');
+        const playerInfoFriend = document.getElementById('player-info-friend');
+        const playerInfoFriendAvatar = document.getElementById('player-info-friend-avatar');
+        const playerInfoFriendCrown = document.getElementById('player-info-friend-crown');
+        const playerInfoFriendName = document.getElementById('player-info-friend-name');
+        const playerInfoFriendScore = document.getElementById('player-info-friend-score');
+        const playerInfoTimer = document.getElementById('player-info-timer');
+
+        // Game components
         const wordDisplay = document.getElementById('word-display');
         const keyboardArea = document.getElementById('keyboard-area');
         const hintArea = document.getElementById('hint-area');
@@ -504,8 +743,12 @@
 
         // Leaderboard
         const winnerAnnouncement = document.getElementById('winner-announcement');
-        const finalScoreYou = document.getElementById('final-score-you');
-        const finalScoreFriend = document.getElementById('final-score-friend');
+        const finalAvatar1 = document.getElementById('final-avatar-1');
+        const finalName1 = document.getElementById('final-name-1');
+        const finalScoreVal1 = document.getElementById('final-score-val-1');
+        const finalAvatar2 = document.getElementById('final-avatar-2');
+        const finalName2 = document.getElementById('final-name-2');
+        const finalScoreVal2 = document.getElementById('final-score-val-2');
         const mainMenuBtn = document.getElementById('main-menu-btn');
 
         // Chat
@@ -534,6 +777,11 @@
         const ROUND_DURATION = 150 * 1000; // 2.5 minutes in ms
         let selectedRounds = 3; // Default
 
+        // Avatar colors
+        const avatarColors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
+        let createAvatarIndex = 0;
+        let joinAvatarIndex = 1;
+
         // --- Firebase State ---
         let app, auth, db;
         let userId;
@@ -550,18 +798,21 @@
         let audioInitialized = false;
 
         function initializeAudio() {
-            if (audioInitialized) return;
-            correctSound = new Tone.Synth().toDestination();
-            wrongSound = new Tone.Synth().toDestination();
-            winSound = new Tone.PolySynth(Tone.Synth).toDestination();
-            loseSound = new Tone.PolySynth(Tone.Synth).toDestination();
-            audioInitialized = true;
+            if (audioInitialized || typeof Tone === 'undefined') return;
+            try {
+                correctSound = new Tone.Synth().toDestination();
+                wrongSound = new Tone.Synth().toDestination();
+                winSound = new Tone.PolySynth(Tone.Synth).toDestination();
+                loseSound = new Tone.PolySynth(Tone.Synth).toDestination();
+                audioInitialized = true;
+            } catch (e) {
+                console.error("Failed to initialize Tone.js:", e);
+            }
         }
 
         async function playSound(soundType) {
             if (!audioInitialized) return;
             
-            // Resume audio context if needed
             if (Tone.context.state !== 'running') {
                 await Tone.start();
             }
@@ -627,8 +878,7 @@
             } else if (onSetup) {
                 errorP = setupError;
             } else {
-                // Fallback for non-setup errors, though not ideal
-                errorP = setupError; 
+                errorP = setupError; // Fallback
             }
             
             errorP.textContent = message;
@@ -636,14 +886,15 @@
         }
 
         function hideAllErrors() {
-            localSetupError.classList.add('hidden');
-            setupError.classList.add('hidden');
-            roundError.classList.add('hidden');
-            setWordError.classList.add('hidden');
-            joinInviteMessage.classList.add('hidden');
+            if (localSetupError) localSetupError.classList.add('hidden');
+            if (setupError) setupError.classList.add('hidden');
+            if (roundError) roundError.classList.add('hidden');
+            if (setWordError) setWordError.classList.add('hidden');
+            // if (joinInviteMessage) joinInviteMessage.classList.add('hidden'); // Removed
         }
 
         function hideAllScreens() {
+            gameContainer.classList.remove('in-game'); // Remove special padding
             modeSelectionScreen.classList.add('hidden');
             localSetupScreen.classList.add('hidden');
             onlineSetupScreen.classList.add('hidden');
@@ -657,7 +908,16 @@
             chatPopup.classList.add('scale-0');
             chatPopup.classList.add('hidden');
             timerDisplay.classList.add('hidden');
+            playerInfoBox.classList.add('hidden'); // Hide new player box
+            scoreDisplayMobile.classList.add('hidden'); // Hide mobile score display
             hideAllErrors();
+        }
+
+        function showGameScreens() {
+            gameContainer.classList.add('in-game'); // Add special padding
+            chatToggleBtn.classList.remove('hidden');
+            playerInfoBox.classList.remove('hidden');
+            scoreDisplayMobile.classList.remove('hidden');
         }
 
         function disableOnlineButtons() {
@@ -711,6 +971,27 @@
         playAgainBtn.addEventListener('click', handlePlayAgain);
         hintBtn.addEventListener('click', handleHintRequest);
 
+        // Avatar Pickers
+        function updateAvatar(display, index) {
+            display.style.backgroundColor = avatarColors[index];
+        }
+        createAvatarPrev.addEventListener('click', () => {
+            createAvatarIndex = (createAvatarIndex - 1 + avatarColors.length) % avatarColors.length;
+            updateAvatar(createAvatarDisplay, createAvatarIndex);
+        });
+        createAvatarNext.addEventListener('click', () => {
+            createAvatarIndex = (createAvatarIndex + 1) % avatarColors.length;
+            updateAvatar(createAvatarDisplay, createAvatarIndex);
+        });
+        joinAvatarPrev.addEventListener('click', () => {
+            joinAvatarIndex = (joinAvatarIndex - 1 + avatarColors.length) % avatarColors.length;
+            updateAvatar(joinAvatarDisplay, joinAvatarIndex);
+        });
+        joinAvatarNext.addEventListener('click', () => {
+            joinAvatarIndex = (joinAvatarIndex + 1) % avatarColors.length;
+            updateAvatar(joinAvatarDisplay, joinAvatarIndex);
+        });
+
         // Round selection listeners
         roundButtons.forEach(btn => {
             btn.addEventListener('click', () => {
@@ -743,17 +1024,7 @@
 
         // --- URL Handling ---
         function checkUrlForGameId() {
-            const params = new URLSearchParams(window.location.search);
-            const gameId = params.get('game');
-            if (gameId) {
-                gameMode = 'online';
-                hideAllScreens();
-                onlineSetupScreen.classList.remove('hidden');
-                joinGameIdInput.value = gameId;
-                joinInviteMessage.textContent = "Found game invite! Enter your name and click 'Join Game' to begin.";
-                joinInviteMessage.classList.remove('hidden');
-                initializeFirebase();
-            }
+            // This feature was removed as requested.
         }
 
         // --- LOCAL GAME FUNCTIONS ---
@@ -769,9 +1040,10 @@
             
             hideAllScreens();
             gameScreen.classList.remove('hidden');
-            scoreDisplay.classList.add('hidden');
+            scoreDisplayMobile.classList.add('hidden'); // No score for local
             timerDisplay.classList.add('hidden'); // No timer for local
             hintArea.classList.add('hidden'); // No hint for local
+            playerInfoBox.classList.add('hidden'); // No player box for local
 
             renderWordDisplay();
             renderKeyboard(true); // Always guesser in local mode
@@ -820,12 +1092,14 @@
             }
             disableOnlineButtons();
             
+            const playerAvatar = avatarColors[createAvatarIndex];
+            
             try {
                 const gameCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`);
                 const gameDoc = await addDoc(gameCollection, {
                     creatorId: userId,
                     guesserId: null,
-                    players: { [userId]: { name: playerName, score: 0 } },
+                    players: { [userId]: { name: playerName, score: 0, avatar: playerAvatar } },
                     currentWordSetter: userId,
                     currentGuesser: null,
                     gameState: 'setting_rounds', // New state
@@ -918,8 +1192,10 @@
                 }
 
                 let players = gameData.players;
+                const playerAvatar = avatarColors[joinAvatarIndex];
+                
                 if (!players[userId]) {
-                     players[userId] = { name: playerName, score: 0 };
+                     players[userId] = { name: playerName, score: 0, avatar: playerAvatar };
                 }
 
                 await updateDoc(gameRef, {
@@ -975,9 +1251,14 @@
 
                 // Show chat icon once game starts
                 if (data.gameState !== 'setting_rounds' && data.gameState !== 'waiting_for_guesser') {
-                    chatToggleBtn.classList.remove('hidden');
+                    showGameScreens(); // Show chat, player box, etc.
                 } else {
                     chatToggleBtn.classList.add('hidden');
+                }
+
+                // Render score for all active states
+                if (data.gameState === 'playing' || data.gameState === 'game_over' || data.gameState === 'waiting_for_word') {
+                    renderScoreDisplay();
                 }
 
                 switch (data.gameState) {
@@ -986,7 +1267,6 @@
                             hideAllScreens();
                             roundSelectionScreen.classList.remove('hidden');
                         } else {
-                            // This state shouldn't be seen by guesser
                             showError("Waiting for creator to set up match...");
                         }
                         break;
@@ -998,8 +1278,9 @@
                     
                     case 'waiting_for_word':
                         hideAllScreens();
-                        chatToggleBtn.classList.remove('hidden');
-                        timerDisplay.classList.add('hidden');
+                        showGameScreens();
+                        timerDisplay.classList.add('hidden'); // Hide mobile timer
+                        playerInfoTimer.classList.add('hidden'); // Hide desktop timer
                         stopRoundTimer();
                         if (amIWordSetter) {
                             setWordScreen.classList.remove('hidden');
@@ -1011,13 +1292,12 @@
                     case 'playing':
                         hideAllScreens();
                         gameScreen.classList.remove('hidden');
-                        chatToggleBtn.classList.remove('hidden');
-                        scoreDisplay.classList.remove('hidden');
-                        timerDisplay.classList.remove('hidden');
+                        showGameScreens();
+                        timerDisplay.classList.remove('hidden'); // Show mobile timer
+                        playerInfoTimer.classList.remove('hidden'); // Show desktop timer
                         gameMessage.classList.add('hidden');
                         
                         startRoundTimer(data.roundEndTime);
-                        renderScoreDisplay();
                         renderWordDisplay();
                         renderKeyboard(amIGuesser);
                         updateHangmanDrawing();
@@ -1027,12 +1307,11 @@
                     case 'game_over':
                         hideAllScreens();
                         gameScreen.classList.remove('hidden');
-                        chatToggleBtn.classList.remove('hidden');
-                        scoreDisplay.classList.remove('hidden');
+                        showGameScreens();
                         timerDisplay.classList.remove('hidden');
+                        playerInfoTimer.classList.remove('hidden');
                         
                         stopRoundTimer();
-                        renderScoreDisplay();
                         renderWordDisplay();
                         renderKeyboard(false);
                         updateHangmanDrawing();
@@ -1227,22 +1506,29 @@
         function startRoundTimer(endTime) {
             stopRoundTimer(); // Clear any existing timer
 
+            function updateTimerDisplay(remainingMs) {
+                const minutes = Math.floor(remainingMs / 60000);
+                const seconds = Math.floor((remainingMs % 60000) / 1000);
+                const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                timerText.textContent = timeString; // Mobile timer
+                playerInfoTimer.textContent = timeString; // Desktop timer
+            }
+            
+            updateTimerDisplay(endTime - Date.now()); // Update immediately
+
             roundTimerInterval = setInterval(() => {
                 const remainingMs = endTime - Date.now();
                 
                 if (remainingMs <= 0) {
                     stopRoundTimer();
-                    timerText.textContent = "00:00";
+                    updateTimerDisplay(0);
                     // Only the guesser can trigger the time-up event
                     if (userId === currentRoomData.currentGuesser && currentRoomData.gameState === 'playing') {
                         handleTimeUp();
                     }
                     return;
                 }
-
-                const minutes = Math.floor(remainingMs / 60000);
-                const seconds = Math.floor((remainingMs % 60000) / 1000);
-                timerText.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                updateTimerDisplay(remainingMs);
             }, 1000);
         }
 
@@ -1289,8 +1575,9 @@
         }
 
         function renderScoreDisplay() {
-            if (gameMode !== 'online' || !currentRoomData.players) {
-                scoreDisplay.classList.add('hidden');
+            if (gameMode !== 'online' || !currentRoomData.players || !userId) {
+                scoreDisplayMobile.classList.add('hidden');
+                playerInfoBox.classList.add('hidden');
                 return;
             }
             
@@ -1300,11 +1587,41 @@
             
             const myName = myPlayer?.name || "You";
             const myScore = myPlayer?.score || 0;
+            const myAvatar = myPlayer?.avatar || avatarColors[0];
+            
             const opponentName = opponentPlayer?.name || "Waiting...";
             const opponentScore = opponentPlayer?.score || 0;
+            const opponentAvatar = opponentPlayer?.avatar || avatarColors[1];
+            
+            const amIWordSetter = userId === currentRoomData.currentWordSetter;
 
+            // --- Update Mobile Display ---
             scoreText.textContent = `${myName}: ${myScore}  -  ${opponentName}: ${opponentScore}`;
             roundText.textContent = `Round ${currentRoomData.currentRound} / ${currentRoomData.totalRounds}`;
+            
+            // --- Update Desktop Player Info Box ---
+            playerInfoRound.innerHTML = `
+                <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                <span>Round ${currentRoomData.currentRound} / ${currentRoomData.totalRounds}</span>
+            `;
+            
+            // My Info
+            playerInfoMeAvatar.style.backgroundColor = myAvatar;
+            playerInfoMeName.textContent = myName;
+            playerInfoMeScore.textContent = myScore;
+
+            // Friend Info
+            playerInfoFriendAvatar.style.backgroundColor = opponentAvatar;
+            playerInfoFriendName.textContent = opponentName;
+            playerInfoFriendScore.textContent = opponentScore;
+
+            // Show crown
+            playerInfoMeCrown.classList.toggle('hidden', !amIWordSetter);
+            playerInfoFriendCrown.classList.toggle('hidden', amIWordSetter);
+            
+            // Highlight active player
+            playerInfoMe.classList.toggle('active-player', amIWordSetter);
+            playerInfoFriend.classList.toggle('active-player', !amIWordSetter);
         }
         
         function renderWordDisplay() {
@@ -1459,11 +1776,23 @@
             
             const myName = myPlayer?.name || "You";
             const myScore = myPlayer?.score || 0;
+            const myAvatar = myPlayer?.avatar || avatarColors[0];
+            
             const opponentName = opponentPlayer?.name || "Friend";
             const opponentScore = opponentPlayer?.score || 0;
+            const opponentAvatar = opponentPlayer?.avatar || avatarColors[1];
             
-            finalScoreYou.textContent = `${myName}: ${myScore}`;
-            finalScoreFriend.textContent = `${opponentName}: ${opponentScore}`;
+            // Populate based on score
+            const player1 = (myScore >= opponentScore) ? myPlayer : opponentPlayer;
+            const player2 = (myScore < opponentScore) ? myPlayer : opponentPlayer;
+
+            finalAvatar1.style.backgroundColor = player1?.avatar || avatarColors[0];
+            finalName1.textContent = player1?.name || "Player 1";
+            finalScoreVal1.textContent = player1?.score || 0;
+            
+            finalAvatar2.style.backgroundColor = player2?.avatar || avatarColors[1];
+            finalName2.textContent = player2?.name || "Player 2";
+            finalScoreVal2.textContent = player2?.score || 0;
 
             if (myScore > opponentScore) {
                 winnerAnnouncement.textContent = `Congratulations, ${myName}!`;
@@ -1635,7 +1964,9 @@
         function renderChatMessage(data) {
             if (!data) return;
             const isMe = data.senderId === userId;
-            const playerName = currentRoomData.players[data.senderId]?.name || "Player";
+            const playerData = currentRoomData.players[data.senderId];
+            const playerName = playerData?.name || "Player";
+            const playerColor = playerData?.avatar || "#6B7280"; // default gray
             
             const msgDiv = document.createElement('div');
             
@@ -1648,8 +1979,9 @@
                 msgDiv.classList.add('w-full', 'flex', 'flex-col', isMe ? 'items-end' : 'items-start');
                 
                 const nameSpan = document.createElement('span');
-                nameSpan.classList.add('text-xs', 'text-gray-500', 'mb-1', 'px-2');
+                nameSpan.classList.add('text-xs', 'font-semibold', 'mb-1', 'px-2');
                 nameSpan.textContent = isMe ? "You" : playerName;
+                nameSpan.style.color = isMe ? '#4F46E5' : playerColor; // My color vs Opponent color
 
                 const bubble = document.createElement('div');
                 bubble.classList.add('p-3', 'rounded-2xl', 'max-w-[75%]', 'shadow', 'break-words');
@@ -1687,6 +2019,8 @@
 
         // --- Initial Load ---
         checkUrlForGameId(); // Check for game invite on load
+        updateAvatar(createAvatarDisplay, createAvatarIndex);
+        updateAvatar(joinAvatarDisplay, joinAvatarIndex);
 
     </script>
 </body>
