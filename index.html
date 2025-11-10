@@ -55,11 +55,57 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+
+        /* --- STYLISH CHAT STYLES --- */
+        #chat-messages {
+            height: 150px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+        }
+        /* Individual message containers */
+        .chat-message {
+            padding: 2px 8px;
+            display: flex;
+            align-items: center;
+        }
+        .chat-message.my-message {
+            justify-content: flex-end; /* Aligns bubble to the right */
+        }
+        .chat-message.friend-message {
+            justify-content: flex-start; /* Aligns bubble to the left */
+        }
+        
+        /* The chat bubble itself */
+        .chat-bubble {
+            padding: 8px 12px;
+            border-radius: 16px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        
+        .chat-bubble.emoji-only {
+            font-size: 2.25rem; /* 36px */
+            padding: 0;
+            background-color: transparent;
+            box-shadow: none;
+        }
+        
+        /* --- EMOJI REACTION STYLES --- */
+        .emoji-reaction-btn {
+            transition: transform 0.15s ease-out;
+            font-size: 1.5rem; /* 24px */
+            cursor: pointer;
+        }
+        .emoji-reaction-btn:hover {
+            transform: scale(1.3);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
 
-    <div class="container mx-auto max-w-lg w-full bg-white rounded-2xl shadow-2xl p-6 md:p-10 transform transition-all duration-300 ease-in-out scale-100">
+    <!-- Main Game Container -->
+    <div class="container relative mx-auto max-w-lg w-full bg-white rounded-2xl shadow-2xl p-6 md:p-10 transform transition-all duration-300 ease-in-out scale-100">
         
         <!-- === Mode Selection Screen === -->
         <div id="mode-selection-screen" class="space-y-6">
@@ -92,7 +138,6 @@
         <div id="online-setup-screen" class="hidden space-y-8">
             <h1 class="text-3xl font-extrabold text-center text-indigo-700">Online Game</h1>
             
-            <!-- Create Game -->
             <div class="border p-4 rounded-lg space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Create a Game</h2>
                 <p class="text-center text-gray-600">This will create a game room for your friend to join.</p>
@@ -101,7 +146,6 @@
                 </button>
             </div>
 
-            <!-- Join Game -->
             <div class="border p-4 rounded-lg space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Join a Game</h2>
                 <p class="text-center text-gray-600">Enter the Game ID your friend gave you.</p>
@@ -198,7 +242,44 @@
                     Play Again
                 </button>
             </div>
+
+            <!-- Chat area removed from here -->
+
         </div>
+
+        <!-- === CHAT POPUP (MOVED) === -->
+        <div id="chat-container" class="hidden absolute bottom-24 right-6 z-10 w-80 bg-white p-4 rounded-xl shadow-2xl border border-gray-200">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-xl font-bold text-gray-800">Chat</h3>
+                <button id="chat-close-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+            </div>
+            <div id="chat-messages" class="rounded-lg p-2 mb-2 space-y-2">
+                <!-- Messages will appear here -->
+            </div>
+            <div class="flex gap-2">
+                <input type="text" id="chat-input" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Say something...">
+                <button id="chat-send-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition shadow-lg">
+                    Send
+                </button>
+            </div>
+            <p id="chat-error" class="text-red-600 text-center text-sm hidden mt-2"></p>
+            <!-- EMOJI BAR -->
+            <div id="emoji-bar" class="flex justify-around mt-3 pt-3 border-t">
+                <button class="emoji-reaction-btn" data-emoji="👍">👍</button>
+                <button class="emoji-reaction-btn" data-emoji="😂">😂</button>
+                <button class="emoji-reaction-btn" data-emoji="😮">😮</button>
+                <button class="emoji-reaction-btn" data-emoji="👏">👏</button>
+                <button class="emoji-reaction-btn" data-emoji="😬">😬</button>
+            </div>
+        </div>
+
+        <!-- === CHAT TOGGLE BUTTON === -->
+        <button id="chat-toggle-btn" class="hidden absolute bottom-6 right-6 z-20 bg-indigo-600 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-700 transition transform hover:scale-110">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+            </svg>
+        </button>
+
     </div>
 
     <!-- Firebase SDKs -->
@@ -219,6 +300,9 @@
             deleteDoc,
             onSnapshot, 
             collection,
+            query,
+            orderBy,
+            serverTimestamp,
             setLogLevel
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
@@ -282,6 +366,17 @@
         const messageText = document.getElementById('message-text');
         const playAgainBtn = document.getElementById('play-again-btn');
 
+        // Chat
+        const chatContainer = document.getElementById('chat-container');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatError = document.getElementById('chat-error');
+        const emojiBar = document.getElementById('emoji-bar');
+        const chatToggleBtn = document.getElementById('chat-toggle-btn'); // --- NEW ---
+        const chatCloseBtn = document.getElementById('chat-close-btn'); // --- NEW ---
+
+
         const hangmanParts = ['head', 'body', 'arm-left', 'arm-right', 'leg-left', 'leg-right'];
 
         // --- Game State ---
@@ -300,6 +395,7 @@
         let isGameCreator = false; // Tracks if this client created the room
         let currentRoomData = {}; // Caches the latest room data
         let unsubscribeListener = null;
+        let unsubscribeChatListener = null;
         let isFirebaseInitialized = false;
         
         // --- Firebase Init ---
@@ -375,6 +471,8 @@
             gameMode = 'local';
             hideAllScreens();
             localSetupScreen.classList.remove('hidden');
+            chatToggleBtn.classList.add('hidden'); // Hide chat
+            chatContainer.classList.add('hidden'); // Hide chat
         });
         
         playOnlineBtn.addEventListener('click', () => {
@@ -396,6 +494,22 @@
         copyGameIdBtn.addEventListener('click', copyGameId);
         playAgainBtn.addEventListener('click', handlePlayAgain); // Single handler
 
+        // Chat listeners
+        chatToggleBtn.addEventListener('click', toggleChatPopup); // --- NEW ---
+        chatCloseBtn.addEventListener('click', toggleChatPopup); // --- NEW ---
+        chatSendBtn.addEventListener('click', () => handleSendMessage());
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSendMessage();
+            }
+        });
+        emojiBar.addEventListener('click', handleEmojiClick);
+
+        // --- NEW ---
+        function toggleChatPopup() {
+            chatContainer.classList.toggle('hidden');
+        }
+
         // --- LOCAL GAME FUNCTIONS ---
         function startLocalGame() {
             const word = localSecretWordInput.value.trim().toUpperCase();
@@ -411,6 +525,8 @@
             hideAllScreens();
             gameScreen.classList.remove('hidden');
             scoreDisplay.classList.add('hidden'); // Hide score in local mode
+            chatToggleBtn.classList.add('hidden'); // Hide chat in local mode
+            chatContainer.classList.add('hidden'); // Hide chat in local mode
 
             renderWordDisplay();
             renderKeyboard(true); // Always guesser in local mode
@@ -447,9 +563,6 @@
 
         // --- ONLINE GAME FUNCTIONS ---
 
-        /**
-         * Creates a new game room document in Firestore.
-         */
         async function createGame() {
             disableOnlineButtons();
             
@@ -458,13 +571,10 @@
                 const gameDoc = await addDoc(gameCollection, {
                     creatorId: userId,
                     guesserId: null,
-                    // Track players and scores
                     players: { [userId]: { name: "Player 1", score: 0 } },
-                    // Game state
-                    currentWordSetter: userId, // Creator sets first word
+                    currentWordSetter: userId,
                     currentGuesser: null,
-                    gameState: 'waiting_for_guesser', // waiting_for_guesser, waiting_for_word, playing, game_over
-                    // Round state
+                    gameState: 'waiting_for_guesser',
                     secretWord: '',
                     guessedLetters: [],
                     wrongGuesses: 0,
@@ -485,9 +595,6 @@
             }
         }
 
-        /**
-         * Joins an existing game room.
-         */
         async function joinGame() {
             const gameId = joinGameIdInput.value.trim();
             if (gameId.length === 0) {
@@ -514,7 +621,6 @@
                     return;
                 }
 
-                // Join the game
                 let players = gameData.players;
                 if (!players[userId]) {
                      players[userId] = { name: "Player 2", score: 0 };
@@ -524,7 +630,7 @@
                     guesserId: userId,
                     currentGuesser: userId,
                     players: players,
-                    gameState: 'waiting_for_word' // Trigger first round
+                    gameState: 'waiting_for_word'
                 });
 
                 currentGameId = gameId;
@@ -541,7 +647,6 @@
 
         /**
          * Attaches a real-time listener to the game document.
-         * This is the main state machine for the online mode.
          */
         function attachGameListener(gameId) {
             const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, gameId);
@@ -558,7 +663,6 @@
                 currentRoomData = docSnap.data();
                 const data = currentRoomData;
 
-                // Update shared state
                 secretWord = data.secretWord;
                 guessedLetters = data.guessedLetters;
                 wrongGuesses = data.wrongGuesses;
@@ -571,6 +675,8 @@
                     case 'waiting_for_guesser':
                         hideAllScreens();
                         waitingScreen.classList.remove('hidden');
+                        chatToggleBtn.classList.add('hidden');
+                        chatContainer.classList.add('hidden');
                         break;
                     
                     case 'waiting_for_word':
@@ -580,13 +686,15 @@
                         } else {
                             waitForWordScreen.classList.remove('hidden');
                         }
+                        chatToggleBtn.classList.remove('hidden'); // Show chat icon
                         break;
                     
                     case 'playing':
                         hideAllScreens();
                         gameScreen.classList.remove('hidden');
                         scoreDisplay.classList.remove('hidden');
-                        gameMessage.classList.add('hidden'); // Hide message on new round
+                        gameMessage.classList.add('hidden');
+                        chatToggleBtn.classList.remove('hidden'); // Show chat icon
                         
                         renderScoreDisplay();
                         renderWordDisplay();
@@ -599,6 +707,7 @@
                         hideAllScreens();
                         gameScreen.classList.remove('hidden');
                         scoreDisplay.classList.remove('hidden');
+                        chatToggleBtn.classList.remove('hidden'); // Show chat icon
                         
                         renderScoreDisplay();
                         renderWordDisplay();
@@ -606,15 +715,117 @@
                         updateHangmanDrawing();
                         updateWrongGuessesDisplay();
                         
-                        endGame(data.lastWinnerId === userId); // Show win/lose message
+                        endGame(data.lastWinnerId === userId);
                         break;
                 }
+            });
+
+            // Also attach the chat listener
+            attachChatListener(gameId);
+        }
+
+        /**
+         * Attaches a listener for the chat messages subcollection.
+         */
+        function attachChatListener(gameId) {
+            if (unsubscribeChatListener) unsubscribeChatListener();
+
+            const messagesCol = collection(db, `artifacts/${appId}/public/data/hangmanGames`, gameId, 'messages');
+            const messagesQuery = query(messagesCol);
+
+            unsubscribeChatListener = onSnapshot(messagesQuery, (querySnapshot) => {
+                let messages = [];
+                querySnapshot.forEach((doc) => {
+                    messages.push(doc.data());
+                });
+                
+                messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
+                
+                chatMessages.innerHTML = ''; // Clear chat
+                messages.forEach(appendChatMessage);
             });
         }
 
         /**
-         * Called by the Word Setter to submit their word.
+         * Appends a single message to the chat box UI.
          */
+        function appendChatMessage(msgData) {
+            const msgDiv = document.createElement('div');
+            msgDiv.classList.add('chat-message', 'py-1');
+            
+            const senderName = msgData.senderId === userId ? "You" : "Friend";
+            
+            const isEmoji = /^\p{Emoji}$/u.test(msgData.text);
+            let bubbleClasses = 'chat-bubble ';
+            
+            if (isEmoji) {
+                bubbleClasses += 'emoji-only';
+            } else {
+                bubbleClasses += 'text-base';
+            }
+
+            if (msgData.senderId === userId) {
+                msgDiv.classList.add('my-message', 'gap-2');
+                bubbleClasses += isEmoji ? '' : ' bg-indigo-500 text-white';
+                msgDiv.innerHTML = `
+                    <span class="${bubbleClasses}">${msgData.text}</span>
+                    <strong class="text-sm text-indigo-600">${senderName}</strong>
+                `;
+            } else {
+                msgDiv.classList.add('friend-message', 'gap-2');
+                bubbleClasses += isEmoji ? '' : ' bg-gray-200 text-gray-800';
+                msgDiv.innerHTML = `
+                    <strong class="text-sm text-gray-700">${senderName}</strong>
+                    <span class="${bubbleClasses}">${msgData.text}</span>
+                `;
+            }
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        /**
+         * Handles sending a chat message (from input or emoji button).
+         */
+        async function handleSendMessage(messageText = null) {
+            const text = messageText ? messageText : chatInput.value.trim();
+            if (text.length === 0) return;
+
+            if (secretWord && secretWord.length > 2 && text.toUpperCase().includes(secretWord.toUpperCase())) {
+                chatError.textContent = "You can't send the secret word in the chat!";
+                chatError.classList.remove('hidden');
+                setTimeout(() => chatError.classList.add('hidden'), 3000);
+                return;
+            }
+
+            if (!messageText) {
+                chatInput.value = '';
+            }
+            chatError.classList.add('hidden');
+
+            try {
+                const messagesCol = collection(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId, 'messages');
+                await addDoc(messagesCol, {
+                    text: text,
+                    senderId: userId,
+                    timestamp: serverTimestamp()
+                });
+            } catch (e) {
+                chatError.textContent = "Error sending message. Check rules.";
+                chatError.classList.remove('hidden');
+            }
+        }
+
+        /**
+         * Handles clicking on the emoji bar.
+         */
+        function handleEmojiClick(e) {
+            if (e.target.classList.contains('emoji-reaction-btn')) {
+                const emoji = e.target.dataset.emoji;
+                handleSendMessage(emoji);
+            }
+        }
+
         async function setOnlineWord() {
             const word = onlineSecretWordInput.value.trim().toUpperCase();
             if (!validateWord(word, false)) return;
@@ -637,12 +848,9 @@
             }
         }
 
-        /**
-         * Handles an online guess, updates Firestore.
-         */
         async function handleGuessOnline(button) {
             const letter = button.dataset.letter;
-            if (guessedLetters.includes(letter)) return; // Prevent double-clicks
+            if (guessedLetters.includes(letter)) return;
 
             button.disabled = true; 
             
@@ -666,7 +874,7 @@
                 newScores[newWinnerId].score++;
             } else if (newWrongGuesses >= maxWrongGuesses) {
                 newStatus = 'game_over';
-                newWinnerId = currentRoomData.currentWordSetter; // Setter wins if guesser fails
+                newWinnerId = currentRoomData.currentWordSetter;
                 newScores[newWinnerId].score++;
             }
             
@@ -681,22 +889,17 @@
                 });
             } catch (e) {
                 showError("Error submitting guess. Please try again.", false);
-                button.disabled = false; // Re-enable if update fails
+                button.disabled = false;
             }
         }
-
-        /**
-         * Triggered by "Next Round" button in online mode.
-         */
+        
         async function startNextRound() {
-            playAgainBtn.disabled = true; // Prevent spam
+            playAgainBtn.disabled = true;
             try {
                 const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                 await updateDoc(gameRef, {
-                    // Swap roles
                     currentWordSetter: currentRoomData.currentGuesser,
                     currentGuesser: currentRoomData.currentWordSetter,
-                    // Reset round state
                     gameState: 'waiting_for_word',
                     secretWord: '',
                     guessedLetters: [],
@@ -715,6 +918,10 @@
         function validateWord(word, onSetup = true) {
              if (word.length === 0) {
                 showError('Please enter a word or phrase.', onSetup);
+                return false;
+            }
+            if (word.length < 3) {
+                showError('Word must be at least 3 letters long.', onSetup);
                 return false;
             }
             const hasConsonant = word.split('').some(letter => consonants.includes(letter));
@@ -771,7 +978,6 @@
                 );
                 button.dataset.letter = letter;
 
-                // Disable if not guesser OR if letter is already guessed
                 if (!canGuess || guessedLetters.includes(letter)) {
                     button.disabled = true;
                 }
@@ -845,19 +1051,20 @@
         }
 
         function resetGame() {
-            if (gameMode === 'online' && unsubscribeListener) {
-                unsubscribeListener();
+            if (gameMode === 'online') {
+                if (unsubscribeListener) unsubscribeListener();
+                if (unsubscribeChatListener) unsubscribeChatListener();
                 unsubscribeListener = null;
+                unsubscribeChatListener = null;
             }
 
-            // Reset game state
             secretWord = '';
             guessedLetters = [];
             wrongGuesses = 0;
             currentGameId = null;
             isGameCreator = false;
             currentRoomData = {};
-            gameMode = 'local'; // Default back to local
+            gameMode = 'local';
 
             hideAllScreens();
             modeSelectionScreen.classList.remove('hidden');
@@ -865,10 +1072,14 @@
             gameMessage.classList.add('hidden');
             wrongGuessesDisplay.textContent = '';
             updateHangmanDrawing();
+            chatToggleBtn.classList.add('hidden'); // --- NEW ---
+            chatContainer.classList.add('hidden');
+            chatMessages.innerHTML = '';
             
             setupError.classList.add('hidden');
             localSetupError.classList.add('hidden');
             setWordError.classList.add('hidden');
+            chatError.classList.add('hidden');
             if (isFirebaseInitialized) {
                 enableOnlineButtons();
             }
@@ -887,9 +1098,8 @@
                 const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                 await deleteDoc(gameRef);
             } catch (e) {
-                // Ignore error, just reset
-            } finally {
                 resetGame();
+            } finally {
                 cancelGameBtn.disabled = false;
             }
         }
