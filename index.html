@@ -6,6 +6,7 @@
     <title>Hangman Game</title>
     <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
     <!-- Load Canvas Confetti --><script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Load Tone.js for Sound --><script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
     <style>
         /* Custom styles for the game */
         body {
@@ -122,6 +123,16 @@
             color: white;
             border-color: #4f46e5;
         }
+
+        /* Hint Button */
+        #hint-btn {
+            transition: all 0.2s ease;
+        }
+        #hint-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #d1d5db; /* gray-300 */
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
@@ -164,7 +175,10 @@
             <!-- Create Game -->
             <div class="border p-4 rounded-lg space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Create a Game</h2>
-                <p class="text-center text-gray-600">This will create a game room for your friend to join.</p>
+                <div>
+                    <label for="create-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                    <input type="text" id="create-name-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
+                </div>
                 <button id="create-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
                     Create Game Room
                 </button>
@@ -173,7 +187,10 @@
             <!-- Join Game -->
             <div class="border p-4 rounded-lg space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Join a Game</h2>
-                <p class="text-center text-gray-600">Enter the Game ID your friend gave you.</p>
+                <div>
+                    <label for="join-name-input" class="block text-sm font-medium text-gray-700 mb-2">Your Name</label>
+                    <input type="text" id="join-name-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter your name">
+                </div>
                 <div>
                     <label for="join-game-id" class="block text-sm font-medium text-gray-700 mb-2">Game ID</label>
                     <input type="text" id="join-game-id" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter Game ID">
@@ -219,8 +236,6 @@
             <h1 class="text-3xl font-extrabold text-indigo-700">Game Created!</h1>
             <p class="text-lg text-gray-700">Share this code with your friend:</p>
             
-            <!-- Share Link (REMOVED) -->
-
             <!-- Share Code -->
             <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
                 <label for="game-id-display" class="block text-sm font-medium text-gray-700 mb-2">Game Code</label>
@@ -258,7 +273,7 @@
 
         <!-- === Game Screen === -->
         <div id="game-screen" class="hidden">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex justify-between items-start mb-4">
                 <!-- Score & Round Display -->
                 <div id="score-display" class="text-left">
                     <h2 class="text-xl font-bold text-indigo-700">Score</h2>
@@ -302,8 +317,16 @@
 
             <!-- Keyboard or Spectator View -->
             <div id="keyboard-area" class="min-h-[160px]">
+                <!-- Hint Button -->
+                <div id="hint-area" class="text-center mb-4 hidden">
+                    <button id="hint-btn" class="bg-yellow-400 text-yellow-900 font-bold py-2 px-5 rounded-full shadow-lg hover:bg-yellow-500">
+                        💡 Get Hint (1 left)
+                    </button>
+                </div>
+                <!-- Keyboard -->
                 <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
                 </div>
+                <!-- Spectator View -->
                 <div id="spectator-view" class="hidden text-center text-gray-700">
                     <p class="text-lg font-semibold">Your friend is guessing...</p>
                     <p class="text-sm">You can chat or send reactions!</p>
@@ -412,7 +435,6 @@
             appId: "1:788607615409:web:a812b8d059333523dfbd90"
         };
         const appId = firebaseConfig.projectId;
-        // REMOVED hardcodedUrl
 
 
         // --- DOM Elements ---
@@ -438,7 +460,9 @@
         const backToModesLocalBtn = document.getElementById('back-to-modes-local-btn');
 
         // Online setup
+        const createNameInput = document.getElementById('create-name-input');
         const createGameBtn = document.getElementById('create-game-btn');
+        const joinNameInput = document.getElementById('join-name-input');
         const joinGameIdInput = document.getElementById('join-game-id');
         const joinGameBtn = document.getElementById('join-game-btn');
         const setupError = document.getElementById('setup-error');
@@ -459,7 +483,6 @@
         // Waiting screen
         const gameIdDisplay = document.getElementById('game-id-display');
         const copyGameIdBtn = document.getElementById('copy-game-id-btn');
-        // REMOVED gameLinkDisplay and copyGameLinkBtn
         const cancelGameBtn = document.getElementById('cancel-game-btn');
         
         // Game screen
@@ -470,6 +493,8 @@
         const timerText = document.getElementById('timer-text');
         const wordDisplay = document.getElementById('word-display');
         const keyboardArea = document.getElementById('keyboard-area');
+        const hintArea = document.getElementById('hint-area');
+        const hintBtn = document.getElementById('hint-btn');
         const keyboardButtons = document.getElementById('keyboard-buttons');
         const spectatorView = document.getElementById('spectator-view');
         const wrongGuessesDisplay = document.getElementById('wrong-guesses-display');
@@ -519,6 +544,43 @@
         let chatUnsubscribe = null;
         let isFirebaseInitialized = false;
         let roundTimerInterval = null;
+
+        // --- Sound Effects (Tone.js) ---
+        let correctSound, wrongSound, winSound, loseSound;
+        let audioInitialized = false;
+
+        function initializeAudio() {
+            if (audioInitialized) return;
+            correctSound = new Tone.Synth().toDestination();
+            wrongSound = new Tone.Synth().toDestination();
+            winSound = new Tone.PolySynth(Tone.Synth).toDestination();
+            loseSound = new Tone.PolySynth(Tone.Synth).toDestination();
+            audioInitialized = true;
+        }
+
+        async function playSound(soundType) {
+            if (!audioInitialized) return;
+            
+            // Resume audio context if needed
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+            }
+
+            const now = Tone.now();
+            try {
+                if (soundType === 'correct') {
+                    correctSound.triggerAttackRelease("C5", "8n", now);
+                } else if (soundType === 'wrong') {
+                    wrongSound.triggerAttackRelease("E3", "8n", now);
+                } else if (soundType === 'win') {
+                    winSound.triggerAttackRelease(["C4", "E4", "G4", "C5"], "0.5s", now);
+                } else if (soundType === 'lose') {
+                    loseSound.triggerAttackRelease(["C3", "G3", "Eb3"], "1s", now);
+                }
+            } catch (e) {
+                console.error("Tone.js error:", e);
+            }
+        }
         
         // --- Firebase Init ---
         async function initializeFirebase() {
@@ -555,19 +617,30 @@
         
         function showError(message, onSetup = true) {
             let errorP;
-            switch(currentRoomData.gameState) {
-                case 'setting_rounds':
-                    errorP = roundError;
-                    break;
-                case 'waiting_for_word':
-                    errorP = setWordError;
-                    break;
-                default:
-                    errorP = onSetup ? (gameMode === 'local' ? localSetupError : setupError) : setupError;
+            // Determine which error field to show
+            if (gameMode === 'local') {
+                errorP = localSetupError;
+            } else if (currentRoomData.gameState === 'setting_rounds') {
+                errorP = roundError;
+            } else if (currentRoomData.gameState === 'waiting_for_word') {
+                errorP = setWordError;
+            } else if (onSetup) {
+                errorP = setupError;
+            } else {
+                // Fallback for non-setup errors, though not ideal
+                errorP = setupError; 
             }
             
             errorP.textContent = message;
             errorP.classList.remove('hidden');
+        }
+
+        function hideAllErrors() {
+            localSetupError.classList.add('hidden');
+            setupError.classList.add('hidden');
+            roundError.classList.add('hidden');
+            setWordError.classList.add('hidden');
+            joinInviteMessage.classList.add('hidden');
         }
 
         function hideAllScreens() {
@@ -584,6 +657,7 @@
             chatPopup.classList.add('scale-0');
             chatPopup.classList.add('hidden');
             timerDisplay.classList.add('hidden');
+            hideAllErrors();
         }
 
         function disableOnlineButtons() {
@@ -614,19 +688,28 @@
             initializeFirebase();
         });
 
-        startLocalGameBtn.addEventListener('click', startLocalGame);
+        startLocalGameBtn.addEventListener('click', () => {
+            initializeAudio(); // Start audio on user interaction
+            startLocalGame();
+        });
         backToModesLocalBtn.addEventListener('click', resetGame);
         backToModesOnlineBtn.addEventListener('click', resetGame);
         mainMenuBtn.addEventListener('click', resetGame);
 
         // Online listeners
-        createGameBtn.addEventListener('click', createGame);
-        joinGameBtn.addEventListener('click', joinGame);
+        createGameBtn.addEventListener('click', () => {
+            initializeAudio(); // Start audio on user interaction
+            createGame();
+        });
+        joinGameBtn.addEventListener('click', () => {
+            initializeAudio(); // Start audio on user interaction
+            joinGame();
+        });
         setOnlineWordBtn.addEventListener('click', setOnlineWord);
         cancelGameBtn.addEventListener('click', cancelGame);
         copyGameIdBtn.addEventListener('click', () => copyToClipboard(gameIdDisplay.value, copyGameIdBtn, 'Copy'));
-        // REMOVED copyGameLinkBtn listener
-        playAgainBtn.addEventListener('click', handlePlayAgain); // Single handler
+        playAgainBtn.addEventListener('click', handlePlayAgain);
+        hintBtn.addEventListener('click', handleHintRequest);
 
         // Round selection listeners
         roundButtons.forEach(btn => {
@@ -658,8 +741,20 @@
         chatForm.addEventListener('submit', handleChatSubmit);
         emojiReactionBar.addEventListener('click', handleEmojiClick);
 
-        // --- URL Handling (REMOVED) ---
-        // REMOVED checkUrlForGameId function
+        // --- URL Handling ---
+        function checkUrlForGameId() {
+            const params = new URLSearchParams(window.location.search);
+            const gameId = params.get('game');
+            if (gameId) {
+                gameMode = 'online';
+                hideAllScreens();
+                onlineSetupScreen.classList.remove('hidden');
+                joinGameIdInput.value = gameId;
+                joinInviteMessage.textContent = "Found game invite! Enter your name and click 'Join Game' to begin.";
+                joinInviteMessage.classList.remove('hidden');
+                initializeFirebase();
+            }
+        }
 
         // --- LOCAL GAME FUNCTIONS ---
         function startLocalGame() {
@@ -671,12 +766,12 @@
             wrongGuesses = 0;
             
             localSecretWordInput.value = '';
-            localSetupError.classList.add('hidden');
             
             hideAllScreens();
             gameScreen.classList.remove('hidden');
             scoreDisplay.classList.add('hidden');
             timerDisplay.classList.add('hidden'); // No timer for local
+            hintArea.classList.add('hidden'); // No hint for local
 
             renderWordDisplay();
             renderKeyboard(true); // Always guesser in local mode
@@ -691,9 +786,11 @@
             guessedLetters.push(letter);
 
             if (secretWord.includes(letter)) {
+                playSound('correct');
                 renderWordDisplay();
                 button.classList.add('bg-green-500', 'text-white');
             } else {
+                playSound('wrong');
                 wrongGuesses++;
                 updateWrongGuessesDisplay();
                 updateHangmanDrawing();
@@ -705,8 +802,10 @@
             );
 
             if (allLettersGuessed) {
+                playSound('win');
                 endGame(true);
             } else if (wrongGuesses >= maxWrongGuesses) {
+                playSound('lose');
                 endGame(false);
             }
         }
@@ -714,6 +813,11 @@
         // --- ONLINE GAME FUNCTIONS ---
 
         async function createGame() {
+            const playerName = createNameInput.value.trim();
+            if (playerName.length < 2) {
+                showError("Please enter a name (at least 2 characters).");
+                return;
+            }
             disableOnlineButtons();
             
             try {
@@ -721,7 +825,7 @@
                 const gameDoc = await addDoc(gameCollection, {
                     creatorId: userId,
                     guesserId: null,
-                    players: { [userId]: { name: "Player 1", score: 0 } },
+                    players: { [userId]: { name: playerName, score: 0 } },
                     currentWordSetter: userId,
                     currentGuesser: null,
                     gameState: 'setting_rounds', // New state
@@ -732,13 +836,13 @@
                     wrongGuesses: 0,
                     lastWinnerId: null,
                     lastEmoji: { emoji: '', timestamp: null },
-                    roundEndTime: null
+                    roundEndTime: null,
+                    hintUsed: false
                 });
                 
                 currentGameId = gameDoc.id;
                 isGameCreator = true;
                 
-                // Don't generate link yet, wait for round selection
                 hideAllScreens();
                 roundSelectionScreen.classList.remove('hidden');
                 
@@ -768,10 +872,8 @@
                     totalRounds: numRounds,
                     gameState: 'waiting_for_guesser'
                 });
-
-                // Now generate and show the code
+                
                 gameIdDisplay.value = currentGameId;
-                // REMOVED link generation
 
                 hideAllScreens();
                 waitingScreen.classList.remove('hidden');
@@ -785,6 +887,12 @@
 
         async function joinGame() {
             const gameId = joinGameIdInput.value.trim();
+            const playerName = joinNameInput.value.trim();
+            
+            if (playerName.length < 2) {
+                showError("Please enter a name (at least 2 characters).");
+                return;
+            }
             if (gameId.length === 0) {
                 showError('Please enter a Game ID to join.');
                 return;
@@ -811,7 +919,7 @@
 
                 let players = gameData.players;
                 if (!players[userId]) {
-                     players[userId] = { name: "Player 2", score: 0 };
+                     players[userId] = { name: playerName, score: 0 };
                 }
 
                 await updateDoc(gameRef, {
@@ -825,7 +933,7 @@
                 currentGameId = gameId;
                 isGameCreator = false;
                 joinGameIdInput.value = '';
-                joinInviteMessage.classList.add('hidden');
+                joinNameInput.value = '';
 
                 attachGameListener(currentGameId);
 
@@ -974,10 +1082,10 @@
                     guessedLetters: [...vowels],
                     wrongGuesses: 0,
                     gameState: 'playing',
-                    roundEndTime: roundEndTime // Set the timer
+                    roundEndTime: roundEndTime, // Set the timer
+                    hintUsed: false // Reset hint for the new round
                 });
                 onlineSecretWordInput.value = '';
-                setWordError.classList.add('hidden');
             } catch (e) {
                 showError("Failed to set word. Please try again.", false);
             } finally {
@@ -997,7 +1105,10 @@
             let newWinnerId = null;
             let newScores = currentRoomData.players;
 
-            if (!secretWord.includes(letter)) {
+            if (secretWord.includes(letter)) {
+                playSound('correct');
+            } else {
+                playSound('wrong');
                 newWrongGuesses++;
             }
 
@@ -1009,10 +1120,12 @@
                 newStatus = 'game_over';
                 newWinnerId = currentRoomData.currentGuesser;
                 newScores[newWinnerId].score++;
+                playSound('win');
             } else if (newWrongGuesses >= maxWrongGuesses) {
                 newStatus = 'game_over';
                 newWinnerId = currentRoomData.currentWordSetter;
                 newScores[newWinnerId].score++;
+                playSound('lose');
             }
             
             try {
@@ -1030,6 +1143,62 @@
             }
         }
 
+        async function handleHintRequest() {
+            if (currentRoomData.hintUsed || currentRoomData.gameState !== 'playing') {
+                return;
+            }
+
+            // Find available hint letters (consonants not yet guessed)
+            const availableHints = secretWord.split('').filter(char => 
+                consonants.includes(char) && !guessedLetters.includes(char)
+            );
+
+            if (availableHints.length === 0) {
+                // No hints left, just disable the button
+                hintBtn.disabled = true;
+                hintBtn.textContent = "No Hints Left";
+                return;
+            }
+
+            hintBtn.disabled = true; // Disable to prevent spam
+            
+            // Pick a random hint
+            const hintLetter = availableHints[Math.floor(Math.random() * availableHints.length)];
+            
+            let newGuessedLetters = [...guessedLetters, hintLetter];
+            let newStatus = 'playing';
+            let newWinnerId = null;
+            let newScores = currentRoomData.players;
+
+            playSound('correct'); // Play correct sound for hint
+
+            // Check if this hint wins the game
+            const allLettersGuessed = secretWord.split('').every(
+                char => char === ' ' || newGuessedLetters.includes(char)
+            );
+
+            if (allLettersGuessed) {
+                newStatus = 'game_over';
+                newWinnerId = currentRoomData.currentGuesser;
+                newScores[newWinnerId].score++;
+                playSound('win');
+            }
+
+            try {
+                const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                await updateDoc(gameRef, {
+                    guessedLetters: newGuessedLetters,
+                    gameState: newStatus,
+                    lastWinnerId: newWinnerId,
+                    players: newScores,
+                    hintUsed: true // Mark hint as used
+                });
+            } catch (e) {
+                showError("Error using hint. Please try again.", false);
+                hintBtn.disabled = false; // Re-enable if it failed
+            }
+        }
+
         async function startNextRound() {
             playAgainBtn.disabled = true;
             try {
@@ -1043,7 +1212,8 @@
                     guessedLetters: [],
                     wrongGuesses: 0,
                     lastWinnerId: null,
-                    roundEndTime: null
+                    roundEndTime: null,
+                    hintUsed: false // Reset hint for new round
                 });
             } catch (e) {
                 showError("Error starting next round. Please try again.", false);
@@ -1089,6 +1259,8 @@
             const winnerId = currentRoomData.currentWordSetter;
             newScores[winnerId].score++;
             
+            playSound('lose'); // Play lose sound
+
             try {
                 const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                 await updateDoc(gameRef, { 
@@ -1122,11 +1294,16 @@
                 return;
             }
             
-            const myScore = currentRoomData.players[userId]?.score || 0;
+            const myPlayer = currentRoomData.players[userId];
             const opponentId = (userId === currentRoomData.creatorId) ? currentRoomData.guesserId : currentRoomData.creatorId;
-            const opponentScore = currentRoomData.players[opponentId]?.score || 0;
+            const opponentPlayer = currentRoomData.players[opponentId];
+            
+            const myName = myPlayer?.name || "You";
+            const myScore = myPlayer?.score || 0;
+            const opponentName = opponentPlayer?.name || "Waiting...";
+            const opponentScore = opponentPlayer?.score || 0;
 
-            scoreText.textContent = `You: ${myScore}  -  Friend: ${opponentScore}`;
+            scoreText.textContent = `${myName}: ${myScore}  -  ${opponentName}: ${opponentScore}`;
             roundText.textContent = `Round ${currentRoomData.currentRound} / ${currentRoomData.totalRounds}`;
         }
         
@@ -1155,6 +1332,18 @@
             keyboardArea.innerHTML = ''; // Clear previous content
 
             if (canGuess) {
+                // Show hint button
+                hintArea.classList.remove('hidden');
+                keyboardArea.appendChild(hintArea);
+                if (currentRoomData.hintUsed) {
+                    hintBtn.disabled = true;
+                    hintBtn.textContent = "💡 Hint Used";
+                } else {
+                    hintBtn.disabled = false;
+                    hintBtn.textContent = "💡 Get Hint (1 left)";
+                }
+
+                // Show keyboard
                 keyboardArea.appendChild(keyboardButtons);
                 spectatorView.classList.add('hidden');
                 keyboardButtons.innerHTML = ''; // Clear old buttons
@@ -1188,6 +1377,7 @@
                 });
             } else {
                 // Show spectator view
+                hintArea.classList.add('hidden');
                 keyboardArea.appendChild(spectatorView);
                 spectatorView.classList.remove('hidden');
             }
@@ -1221,11 +1411,15 @@
                 messageText.classList.add('text-green-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-500', 'animate-pulse');
                 messageText.style.backgroundImage = 'linear-gradient(to right, var(--tw-gradient-stops))';
                 fireConfetti();
+                // Play win sound only if it wasn't already played by guess
+                if (currentRoomData.gameState !== 'game_over') playSound('win');
             } else {
                 messageText.textContent = 'GAME OVER!';
                 messageText.classList.add('text-red-600');
                 guessedLetters = [...secretWord.split('')];
                 renderWordDisplay();
+                // Play lose sound only if it wasn't already played by guess
+                if (currentRoomData.gameState !== 'game_over') playSound('lose');
             }
             
             if (gameMode === 'local') {
@@ -1259,20 +1453,25 @@
         }
 
         function renderLeaderboard() {
-            const myScore = currentRoomData.players[userId]?.score || 0;
+            const myPlayer = currentRoomData.players[userId];
             const opponentId = (userId === currentRoomData.creatorId) ? currentRoomData.guesserId : currentRoomData.creatorId;
-            const opponentScore = currentRoomData.players[opponentId]?.score || 0;
+            const opponentPlayer = currentRoomData.players[opponentId];
             
-            finalScoreYou.textContent = `You: ${myScore}`;
-            finalScoreFriend.textContent = `Friend: ${opponentScore}`;
+            const myName = myPlayer?.name || "You";
+            const myScore = myPlayer?.score || 0;
+            const opponentName = opponentPlayer?.name || "Friend";
+            const opponentScore = opponentPlayer?.score || 0;
+            
+            finalScoreYou.textContent = `${myName}: ${myScore}`;
+            finalScoreFriend.textContent = `${opponentName}: ${opponentScore}`;
 
             if (myScore > opponentScore) {
-                winnerAnnouncement.textContent = 'Congratulations, You Win!';
+                winnerAnnouncement.textContent = `Congratulations, ${myName}!`;
                 winnerAnnouncement.classList.remove('text-red-600', 'text-gray-600');
                 winnerAnnouncement.classList.add('text-green-600');
                 fireConfetti();
             } else if (opponentScore > myScore) {
-                winnerAnnouncement.textContent = 'Your Friend Wins!';
+                winnerAnnouncement.textContent = `${opponentName} Wins!`;
                 winnerAnnouncement.classList.remove('text-green-600', 'text-gray-600');
                 winnerAnnouncement.classList.add('text-red-600');
             } else {
@@ -1307,12 +1506,10 @@
             wrongGuessesDisplay.textContent = '';
             updateHangmanDrawing();
             
-            setupError.classList.add('hidden');
-    
-            localSetupError.classList.add('hidden');
-            setWordError.classList.add('hidden');
-            roundError.classList.add('hidden');
-            joinInviteMessage.classList.add('hidden');
+            // Clear name fields
+            createNameInput.value = '';
+            joinNameInput.value = '';
+            
             if (isFirebaseInitialized) {
                 enableOnlineButtons();
             }
@@ -1438,6 +1635,8 @@
         function renderChatMessage(data) {
             if (!data) return;
             const isMe = data.senderId === userId;
+            const playerName = currentRoomData.players[data.senderId]?.name || "Player";
+            
             const msgDiv = document.createElement('div');
             
             if (data.isEmoji) {
@@ -1446,7 +1645,12 @@
                 msgDiv.textContent = data.text;
             } else {
                 // Text message
-                msgDiv.classList.add('w-full', 'flex', isMe ? 'justify-end' : 'justify-start');
+                msgDiv.classList.add('w-full', 'flex', 'flex-col', isMe ? 'items-end' : 'items-start');
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.classList.add('text-xs', 'text-gray-500', 'mb-1', 'px-2');
+                nameSpan.textContent = isMe ? "You" : playerName;
+
                 const bubble = document.createElement('div');
                 bubble.classList.add('p-3', 'rounded-2xl', 'max-w-[75%]', 'shadow', 'break-words');
                 bubble.textContent = data.text;
@@ -1456,6 +1660,7 @@
                 } else {
                     bubble.classList.add('bg-gray-200', 'text-gray-800', 'rounded-bl-none');
                 }
+                msgDiv.appendChild(nameSpan);
                 msgDiv.appendChild(bubble);
             }
             
@@ -1481,7 +1686,7 @@
         }
 
         // --- Initial Load ---
-        // REMOVED checkUrlForGameId() call
+        checkUrlForGameId(); // Check for game invite on load
 
     </script>
 </body>
