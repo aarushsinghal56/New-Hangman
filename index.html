@@ -56,55 +56,77 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* --- STYLISH CHAT STYLES --- */
+        /* --- CHAT POPUP STYLES --- */
+        #chat-icon-btn {
+            position: absolute;
+            bottom: 1.5rem; /* 24px */
+            right: 1.5rem; /* 24px */
+            z-index: 50;
+        }
+        #chat-popup {
+            position: absolute;
+            bottom: 5rem; /* 80px */
+            right: 1.5rem; /* 24px */
+            width: 300px;
+            height: 400px;
+            z-index: 40;
+            transition: all 0.3s ease-in-out;
+            transform-origin: bottom right;
+        }
+        /* Hide by default */
+        #chat-popup.scale-0 {
+            transform: scale(0);
+            opacity: 0;
+        }
+        /* Show */
+        #chat-popup.scale-100 {
+            transform: scale(1);
+            opacity: 1;
+        }
         #chat-messages {
-            height: 150px;
-            overflow-y: auto;
-            border: 1px solid #e5e7eb;
-            background-color: #f9fafb;
+            scroll-behavior: smooth;
         }
-        /* Individual message containers */
-        .chat-message {
-            padding: 2px 8px;
-            display: flex;
-            align-items: center;
-        }
-        .chat-message.my-message {
-            justify-content: flex-end; /* Aligns bubble to the right */
-        }
-        .chat-message.friend-message {
-            justify-content: flex-start; /* Aligns bubble to the left */
-        }
-        
-        /* The chat bubble itself */
-        .chat-bubble {
-            padding: 8px 12px;
-            border-radius: 16px;
-            max-width: 80%;
-            word-wrap: break-word;
-        }
-        
-        .chat-bubble.emoji-only {
-            font-size: 2.25rem; /* 36px */
-            padding: 0;
-            background-color: transparent;
-            box-shadow: none;
-        }
-        
-        /* --- EMOJI REACTION STYLES --- */
         .emoji-reaction-btn {
-            transition: transform 0.15s ease-out;
+            transition: all 0.15s ease-out;
             font-size: 1.5rem; /* 24px */
-            cursor: pointer;
         }
         .emoji-reaction-btn:hover {
-            transform: scale(1.3);
+            transform: scale(1.25);
+        }
+
+        /* --- EMOJI REACTION STYLES --- */
+        #emoji-display-area {
+            position: fixed;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 6rem;
+            opacity: 0;
+            transition: all 0.5s ease-out;
+            z-index: 100;
+            pointer-events: none; /* So it doesn't block clicks */
+        }
+        #emoji-display-area.pop-and-fade {
+            animation: popAndFade 2s ease-out forwards;
+        }
+        @keyframes popAndFade {
+            0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+            20% { transform: translateX(-50%) scale(1.2); opacity: 1; }
+            40% { transform: translateX(-50%) scale(1); opacity: 1; }
+            100% { transform: translateX(-50%) scale(1); opacity: 0; }
+        }
+
+        /* Round Selection Buttons */
+        .round-btn.selected {
+            background-color: #4f46e5; /* indigo-600 */
+            color: white;
+            border-color: #4f46e5;
         }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
 
-    <!-- Main Game Container -->
+    <!-- This is the main container for the game -->
     <div class="container relative mx-auto max-w-lg w-full bg-white rounded-2xl shadow-2xl p-6 md:p-10 transform transition-all duration-300 ease-in-out scale-100">
         
         <!-- === Mode Selection Screen === -->
@@ -137,7 +159,9 @@
         <!-- === Online Setup Screen === -->
         <div id="online-setup-screen" class="hidden space-y-8">
             <h1 class="text-3xl font-extrabold text-center text-indigo-700">Online Game</h1>
+            <p id="join-invite-message" class="text-center text-lg text-green-700 font-semibold hidden"></p>
             
+            <!-- Create Game -->
             <div class="border p-4 rounded-lg space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Create a Game</h2>
                 <p class="text-center text-gray-600">This will create a game room for your friend to join.</p>
@@ -146,6 +170,7 @@
                 </button>
             </div>
 
+            <!-- Join Game -->
             <div class="border p-4 rounded-lg space-y-4">
                 <h2 class="text-2xl font-bold text-gray-800 text-center">Join a Game</h2>
                 <p class="text-center text-gray-600">Enter the Game ID your friend gave you.</p>
@@ -163,14 +188,48 @@
             <button id="back-to-modes-online-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
         </div>
 
+        <!-- === Round Selection Screen === -->
+        <div id="round-selection-screen" class="hidden space-y-6">
+            <h1 class="text-3xl font-extrabold text-center text-indigo-700">Set Match Length</h1>
+            <p class="text-center text-gray-700 text-lg">Choose how many rounds you want to play.</p>
+            <div class="space-y-3">
+                <button data-rounds="3" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
+                    Quick Match (Best of 3)
+                </button>
+                <button data-rounds="7" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
+                    Normal Match (Best of 7)
+                </button>
+            </div>
+            <!-- Custom Match -->
+            <div class="space-y-2">
+                <button data-rounds="custom" class="round-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-4 px-6 rounded-xl hover:bg-gray-100 transition">
+                    Custom Match
+                </button>
+                <input type="number" id="custom-rounds-input" min="1" max="99" class="hidden w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter total rounds (e.g., 5)">
+            </div>
+            <button id="set-rounds-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                Start Match
+            </button>
+            <p id="round-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+        </div>
+
+
         <!-- === Waiting Screen === -->
         <div id="waiting-screen" class="hidden text-center space-y-6">
             <h1 class="text-3xl font-extrabold text-indigo-700">Game Created!</h1>
-            <p class="text-lg text-gray-700">Share this Game ID with your friend:</p>
+            <p class="text-lg text-gray-700">Share this code with your friend:</p>
+            
+            <!-- Share Link (REMOVED) -->
+
+            <!-- Share Code -->
             <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
-                <input id="game-id-display" type="text" readonly class="w-full text-center text-2xl font-bold bg-transparent border-none text-gray-800" value="Loading...">
-                <button id="copy-game-id-btn" class="mt-4 bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-600 transition">Copy ID</button>
+                <label for="game-id-display" class="block text-sm font-medium text-gray-700 mb-2">Game Code</label>
+                <div class="flex">
+                    <input id="game-id-display" type="text" readonly class="w-full text-center text-2xl font-bold bg-white border border-gray-300 rounded-l-lg text-gray-800" value="Loading...">
+                    <button id="copy-game-id-btn" class="bg-indigo-500 text-white font-bold py-2 px-4 rounded-r-lg hover:bg-indigo-600 transition">Copy</button>
+                </div>
             </div>
+
             <p class="text-lg text-gray-700">Waiting for a friend to join...</p>
             <div class="loader"></div>
             <button id="cancel-game-btn" class="text-sm text-red-600 hover:underline">Cancel Game</button>
@@ -199,14 +258,24 @@
 
         <!-- === Game Screen === -->
         <div id="game-screen" class="hidden">
-            <div id="score-display" class="mb-4 text-center">
-                <h2 class="text-2xl font-bold text-indigo-700">Score</h2>
-                <p id="score-text" class="text-lg text-gray-700">You: 0 - Friend: 0</p>
+            <div class="flex justify-between items-center mb-4">
+                <!-- Score & Round Display -->
+                <div id="score-display" class="text-left">
+                    <h2 class="text-xl font-bold text-indigo-700">Score</h2>
+                    <p id="score-text" class="text-lg text-gray-700">You: 0 - Friend: 0</p>
+                    <p id="round-text" class="text-sm text-gray-500">Round 1 / 3</p>
+                </div>
+                <!-- Timer Display -->
+                <div id="timer-display" class="text-right">
+                    <h2 class="text-xl font-bold text-red-600">Time Left</h2>
+                    <p id="timer-text" class="text-lg text-gray-700 font-mono font-bold">02:30</p>
+                </div>
             </div>
-            <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-8">Guess the Word!</h1>
+
+            <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-4">Guess the Word!</h1>
             
             <!-- Hangman Drawing -->
-            <div class="flex justify-center mb-8 bg-gray-50 p-4 rounded-lg shadow-inner">
+            <div class="flex justify-center mb-4 bg-gray-50 p-4 rounded-lg shadow-inner">
                 <svg height="250" width="200" viewBox="0 0 200 250">
                     <line id="gallows-base" x1="10" y1="230" x2="130" y2="230" class="hangman-part" style="stroke: #5a67d8;" />
                     <line id="gallows-pole" x1="70" y1="230" x2="70" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
@@ -222,65 +291,91 @@
             </div>
 
             <!-- Word Display -->
-            <div id="word-display" class="flex justify-center flex-wrap gap-x-3 md:gap-x-4 gap-y-2 mb-8 p-3 bg-indigo-50 rounded-lg shadow-inner text-indigo-900">
+            <div id="word-display" class="flex justify-center flex-wrap gap-x-3 md:gap-x-4 gap-y-2 mb-4 p-3 bg-indigo-50 rounded-lg shadow-inner text-indigo-900">
             </div>
 
             <!-- Wrong Guesses -->
-            <div class="mb-8 text-center bg-red-50 p-3 rounded-lg shadow-inner">
+            <div class="mb-4 text-center bg-red-50 p-3 rounded-lg shadow-inner">
                 <h2 class="text-base font-semibold text-red-700 uppercase tracking-wide">Wrong Guesses:</h2>
                 <p id="wrong-guesses-display" class="text-2xl font-extrabold text-red-800 h-8 mt-1"></p>
             </div>
 
-            <!-- Keyboard -->
-            <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
+            <!-- Keyboard or Spectator View -->
+            <div id="keyboard-area" class="min-h-[160px]">
+                <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
+                </div>
+                <div id="spectator-view" class="hidden text-center text-gray-700">
+                    <p class="text-lg font-semibold">Your friend is guessing...</p>
+                    <p class="text-sm">You can chat or send reactions!</p>
+                </div>
             </div>
 
+
             <!-- Game Over Message -->
-            <div id="game-message" class="text-center mt-10 space-y-5 hidden">
+            <div id="game-message" class="text-center mt-6 space-y-5 hidden">
                 <h2 id="message-text" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500 animate-pulse"></h2>
                 <button id="play-again-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 shadow-xl text-xl transform hover:scale-[1.05]">
                     Play Again
                 </button>
             </div>
-
-            <!-- Chat area removed from here -->
-
         </div>
 
-        <!-- === CHAT POPUP (MOVED) === -->
-        <div id="chat-container" class="hidden absolute bottom-24 right-6 z-10 w-80 bg-white p-4 rounded-xl shadow-2xl border border-gray-200">
-            <div class="flex justify-between items-center mb-2">
-                <h3 class="text-xl font-bold text-gray-800">Chat</h3>
-                <button id="chat-close-btn" class="text-gray-500 hover:text-gray-800 text-2xl font-bold">&times;</button>
+        <!-- === Leaderboard Screen === -->
+        <div id="leaderboard-screen" class="hidden text-center space-y-6">
+            <h1 class="text-4xl font-extrabold text-indigo-700">Match Over!</h1>
+            <div id="winner-announcement" class="text-3xl font-bold text-green-600"></div>
+            <div class="bg-gray-100 p-6 rounded-lg shadow-inner space-y-4">
+                <h2 class="text-2xl font-bold text-gray-800">Final Score</h2>
+                <div id="final-score-you" class="text-xl text-gray-700">You: 0</div>
+                <div id="final-score-friend" class="text-xl text-gray-700">Friend: 0</div>
             </div>
-            <div id="chat-messages" class="rounded-lg p-2 mb-2 space-y-2">
-                <!-- Messages will appear here -->
-            </div>
-            <div class="flex gap-2">
-                <input type="text" id="chat-input" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Say something...">
-                <button id="chat-send-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 transition shadow-lg">
-                    Send
-                </button>
-            </div>
-            <p id="chat-error" class="text-red-600 text-center text-sm hidden mt-2"></p>
-            <!-- EMOJI BAR -->
-            <div id="emoji-bar" class="flex justify-around mt-3 pt-3 border-t">
-                <button class="emoji-reaction-btn" data-emoji="👍">👍</button>
-                <button class="emoji-reaction-btn" data-emoji="😂">😂</button>
-                <button class="emoji-reaction-btn" data-emoji="😮">😮</button>
-                <button class="emoji-reaction-btn" data-emoji="👏">👏</button>
-                <button class="emoji-reaction-btn" data-emoji="😬">😬</button>
-            </div>
+            <button id="main-menu-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                Back to Main Menu
+            </button>
         </div>
 
-        <!-- === CHAT TOGGLE BUTTON === -->
-        <button id="chat-toggle-btn" class="hidden absolute bottom-6 right-6 z-20 bg-indigo-600 text-white w-16 h-16 rounded-full shadow-lg flex items-center justify-center hover:bg-indigo-700 transition transform hover:scale-110">
-            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
-            </svg>
+        <!-- === CHAT ICON === -->
+        <button id="chat-toggle-btn" class="hidden absolute bottom-6 right-6 w-16 h-16 bg-indigo-600 text-white rounded-full flex items-center justify-center shadow-lg transition-transform transform hover:scale-110 z-50">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
         </button>
 
+        <!-- === CHAT POPUP === -->
+        <div id="chat-popup" class="hidden absolute bottom-24 right-6 w-80 h-96 flex-col bg-white border border-gray-300 rounded-xl shadow-2xl overflow-hidden scale-0 z-40">
+            <!-- Chat Header -->
+            <div class="flex justify-between items-center p-3 bg-indigo-600 text-white">
+                <h3 class="font-bold text-lg">Game Chat</h3>
+                <button id="chat-close-btn" class="text-white hover:text-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <!-- Chat Messages -->
+            <div id="chat-messages" class="flex-1 p-3 space-y-3 overflow-y-auto bg-gray-50">
+                <!-- Messages will be injected here -->
+            </div>
+
+            <!-- Emoji Reactions -->
+            <div class="p-2 bg-gray-100 border-t border-gray-200">
+                <div id="emoji-reaction-bar" class="flex justify-around">
+                    <button class="emoji-reaction-btn p-1" data-emoji="👍">👍</button>
+                    <button class="emoji-reaction-btn p-1" data-emoji="😂">😂</button>
+                    <button class="emoji-reaction-btn p-1" data-emoji="😮">😮</button>
+                    <button class="emoji-reaction-btn p-1" data-emoji="👏">👏</button>
+                    <button class="emoji-reaction-btn p-1" data-emoji="😬">😬</button>
+                </div>
+            </div>
+
+            <!-- Chat Input -->
+            <form id="chat-form" class="flex p-3 border-t border-gray-200">
+                <input id="chat-input" type="text" class="flex-1 border border-gray-300 rounded-l-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400" placeholder="Type a message..." autocomplete="off">
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-r-lg font-semibold hover:bg-indigo-700">Send</button>
+            </form>
+        </div>
+
     </div>
+
+    <!-- === EMOJI DISPLAY AREA === -->
+    <div id="emoji-display-area" class=""></div>
 
     <!-- Firebase SDKs -->
     <script type="module">
@@ -317,16 +412,20 @@
             appId: "1:788607615409:web:a812b8d059333523dfbd90"
         };
         const appId = firebaseConfig.projectId;
+        // REMOVED hardcodedUrl
 
 
         // --- DOM Elements ---
         const modeSelectionScreen = document.getElementById('mode-selection-screen');
         const localSetupScreen = document.getElementById('local-setup-screen');
         const onlineSetupScreen = document.getElementById('online-setup-screen');
+        const roundSelectionScreen = document.getElementById('round-selection-screen');
         const waitingScreen = document.getElementById('waiting-screen');
         const setWordScreen = document.getElementById('set-word-screen');
         const waitForWordScreen = document.getElementById('wait-for-word-screen');
         const gameScreen = document.getElementById('game-screen');
+        const leaderboardScreen = document.getElementById('leaderboard-screen');
+        const joinInviteMessage = document.getElementById('join-invite-message');
         
         // Mode buttons
         const playLocalBtn = document.getElementById('play-local-btn');
@@ -346,6 +445,12 @@
         const userIdDisplay = document.getElementById('user-id-display');
         const backToModesOnlineBtn = document.getElementById('back-to-modes-online-btn');
 
+        // Round Selection
+        const roundButtons = document.querySelectorAll('.round-btn');
+        const customRoundsInput = document.getElementById('custom-rounds-input');
+        const setRoundsBtn = document.getElementById('set-rounds-btn');
+        const roundError = document.getElementById('round-error');
+
         // Set Word (Online)
         const onlineSecretWordInput = document.getElementById('online-secret-word-input');
         const setOnlineWordBtn = document.getElementById('set-online-word-btn');
@@ -354,28 +459,41 @@
         // Waiting screen
         const gameIdDisplay = document.getElementById('game-id-display');
         const copyGameIdBtn = document.getElementById('copy-game-id-btn');
+        // REMOVED gameLinkDisplay and copyGameLinkBtn
         const cancelGameBtn = document.getElementById('cancel-game-btn');
         
         // Game screen
         const scoreDisplay = document.getElementById('score-display');
         const scoreText = document.getElementById('score-text');
+        const roundText = document.getElementById('round-text');
+        const timerDisplay = document.getElementById('timer-display');
+        const timerText = document.getElementById('timer-text');
         const wordDisplay = document.getElementById('word-display');
+        const keyboardArea = document.getElementById('keyboard-area');
         const keyboardButtons = document.getElementById('keyboard-buttons');
+        const spectatorView = document.getElementById('spectator-view');
         const wrongGuessesDisplay = document.getElementById('wrong-guesses-display');
         const gameMessage = document.getElementById('game-message');
         const messageText = document.getElementById('message-text');
         const playAgainBtn = document.getElementById('play-again-btn');
 
-        // Chat
-        const chatContainer = document.getElementById('chat-container');
-        const chatMessages = document.getElementById('chat-messages');
-        const chatInput = document.getElementById('chat-input');
-        const chatSendBtn = document.getElementById('chat-send-btn');
-        const chatError = document.getElementById('chat-error');
-        const emojiBar = document.getElementById('emoji-bar');
-        const chatToggleBtn = document.getElementById('chat-toggle-btn'); // --- NEW ---
-        const chatCloseBtn = document.getElementById('chat-close-btn'); // --- NEW ---
+        // Leaderboard
+        const winnerAnnouncement = document.getElementById('winner-announcement');
+        const finalScoreYou = document.getElementById('final-score-you');
+        const finalScoreFriend = document.getElementById('final-score-friend');
+        const mainMenuBtn = document.getElementById('main-menu-btn');
 
+        // Chat
+        const chatToggleBtn = document.getElementById('chat-toggle-btn');
+        const chatPopup = document.getElementById('chat-popup');
+        const chatCloseBtn = document.getElementById('chat-close-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const emojiReactionBar = document.getElementById('emoji-reaction-bar');
+
+        // Emoji Reaction Display
+        const emojiDisplayArea = document.getElementById('emoji-display-area');
 
         const hangmanParts = ['head', 'body', 'arm-left', 'arm-right', 'leg-left', 'leg-right'];
 
@@ -387,6 +505,9 @@
         const maxWrongGuesses = 6;
         const vowels = ['A', 'E', 'I', 'O', 'U'];
         const consonants = 'BCDFGHJKLMNPQRSTVWXYZ'.split('');
+        const emojiList = ['👍', '😂', '😮', '👏', '😬'];
+        const ROUND_DURATION = 150 * 1000; // 2.5 minutes in ms
+        let selectedRounds = 3; // Default
 
         // --- Firebase State ---
         let app, auth, db;
@@ -394,9 +515,10 @@
         let currentGameId = null;
         let isGameCreator = false; // Tracks if this client created the room
         let currentRoomData = {}; // Caches the latest room data
-        let unsubscribeListener = null;
-        let unsubscribeChatListener = null;
+        let gameUnsubscribe = null;
+        let chatUnsubscribe = null;
         let isFirebaseInitialized = false;
+        let roundTimerInterval = null;
         
         // --- Firebase Init ---
         async function initializeFirebase() {
@@ -432,12 +554,18 @@
         }
         
         function showError(message, onSetup = true) {
-            const errorP = onSetup ? (gameMode === 'local' ? localSetupError : setupError) : setupError;
-            if (gameMode === 'online' && !onSetup) {
-                setWordError.textContent = message;
-                setWordError.classList.remove('hidden');
-                return;
+            let errorP;
+            switch(currentRoomData.gameState) {
+                case 'setting_rounds':
+                    errorP = roundError;
+                    break;
+                case 'waiting_for_word':
+                    errorP = setWordError;
+                    break;
+                default:
+                    errorP = onSetup ? (gameMode === 'local' ? localSetupError : setupError) : setupError;
             }
+            
             errorP.textContent = message;
             errorP.classList.remove('hidden');
         }
@@ -446,10 +574,16 @@
             modeSelectionScreen.classList.add('hidden');
             localSetupScreen.classList.add('hidden');
             onlineSetupScreen.classList.add('hidden');
+            roundSelectionScreen.classList.add('hidden');
             waitingScreen.classList.add('hidden');
             setWordScreen.classList.add('hidden');
             waitForWordScreen.classList.add('hidden');
             gameScreen.classList.add('hidden');
+            leaderboardScreen.classList.add('hidden');
+            chatToggleBtn.classList.add('hidden');
+            chatPopup.classList.add('scale-0');
+            chatPopup.classList.add('hidden');
+            timerDisplay.classList.add('hidden');
         }
 
         function disableOnlineButtons() {
@@ -471,8 +605,6 @@
             gameMode = 'local';
             hideAllScreens();
             localSetupScreen.classList.remove('hidden');
-            chatToggleBtn.classList.add('hidden'); // Hide chat
-            chatContainer.classList.add('hidden'); // Hide chat
         });
         
         playOnlineBtn.addEventListener('click', () => {
@@ -485,30 +617,49 @@
         startLocalGameBtn.addEventListener('click', startLocalGame);
         backToModesLocalBtn.addEventListener('click', resetGame);
         backToModesOnlineBtn.addEventListener('click', resetGame);
+        mainMenuBtn.addEventListener('click', resetGame);
 
         // Online listeners
         createGameBtn.addEventListener('click', createGame);
         joinGameBtn.addEventListener('click', joinGame);
         setOnlineWordBtn.addEventListener('click', setOnlineWord);
         cancelGameBtn.addEventListener('click', cancelGame);
-        copyGameIdBtn.addEventListener('click', copyGameId);
+        copyGameIdBtn.addEventListener('click', () => copyToClipboard(gameIdDisplay.value, copyGameIdBtn, 'Copy'));
+        // REMOVED copyGameLinkBtn listener
         playAgainBtn.addEventListener('click', handlePlayAgain); // Single handler
 
-        // Chat listeners
-        chatToggleBtn.addEventListener('click', toggleChatPopup); // --- NEW ---
-        chatCloseBtn.addEventListener('click', toggleChatPopup); // --- NEW ---
-        chatSendBtn.addEventListener('click', () => handleSendMessage());
-        chatInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                handleSendMessage();
-            }
+        // Round selection listeners
+        roundButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                roundButtons.forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedRounds = btn.dataset.rounds;
+                if (selectedRounds === 'custom') {
+                    customRoundsInput.classList.remove('hidden');
+                } else {
+                    customRoundsInput.classList.add('hidden');
+                }
+            });
         });
-        emojiBar.addEventListener('click', handleEmojiClick);
+        setRoundsBtn.addEventListener('click', setRounds);
 
-        // --- NEW ---
-        function toggleChatPopup() {
-            chatContainer.classList.toggle('hidden');
+
+        // Input sanitization
+        function sanitizeSecretWordInput(event) {
+            const regex = /[^A-Za-z ]/g;
+            event.target.value = event.target.value.replace(regex, '');
         }
+        localSecretWordInput.addEventListener('input', sanitizeSecretWordInput);
+        onlineSecretWordInput.addEventListener('input', sanitizeSecretWordInput);
+
+        // Chat listeners
+        chatToggleBtn.addEventListener('click', toggleChatPopup);
+        chatCloseBtn.addEventListener('click', toggleChatPopup);
+        chatForm.addEventListener('submit', handleChatSubmit);
+        emojiReactionBar.addEventListener('click', handleEmojiClick);
+
+        // --- URL Handling (REMOVED) ---
+        // REMOVED checkUrlForGameId function
 
         // --- LOCAL GAME FUNCTIONS ---
         function startLocalGame() {
@@ -524,9 +675,8 @@
             
             hideAllScreens();
             gameScreen.classList.remove('hidden');
-            scoreDisplay.classList.add('hidden'); // Hide score in local mode
-            chatToggleBtn.classList.add('hidden'); // Hide chat in local mode
-            chatContainer.classList.add('hidden'); // Hide chat in local mode
+            scoreDisplay.classList.add('hidden');
+            timerDisplay.classList.add('hidden'); // No timer for local
 
             renderWordDisplay();
             renderKeyboard(true); // Always guesser in local mode
@@ -574,24 +724,62 @@
                     players: { [userId]: { name: "Player 1", score: 0 } },
                     currentWordSetter: userId,
                     currentGuesser: null,
-                    gameState: 'waiting_for_guesser',
+                    gameState: 'setting_rounds', // New state
+                    totalRounds: 0,
+                    currentRound: 0,
                     secretWord: '',
                     guessedLetters: [],
                     wrongGuesses: 0,
-                    lastWinnerId: null
+                    lastWinnerId: null,
+                    lastEmoji: { emoji: '', timestamp: null },
+                    roundEndTime: null
                 });
                 
                 currentGameId = gameDoc.id;
                 isGameCreator = true;
-
-                gameIdDisplay.value = currentGameId;
+                
+                // Don't generate link yet, wait for round selection
                 hideAllScreens();
-                waitingScreen.classList.remove('hidden');
+                roundSelectionScreen.classList.remove('hidden');
                 
                 attachGameListener(currentGameId);
             } catch (e) {
                 showError("Failed to create game. Please try again.");
                 enableOnlineButtons();
+            }
+        }
+
+        async function setRounds() {
+            let numRounds;
+            if (selectedRounds === 'custom') {
+                numRounds = parseInt(customRoundsInput.value, 10);
+                if (isNaN(numRounds) || numRounds < 1 || numRounds > 99) {
+                    showError("Please enter a valid number of rounds (1-99).", false);
+                    return;
+                }
+            } else {
+                numRounds = parseInt(selectedRounds, 10);
+            }
+
+            setRoundsBtn.disabled = true;
+            try {
+                const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                await updateDoc(gameRef, {
+                    totalRounds: numRounds,
+                    gameState: 'waiting_for_guesser'
+                });
+
+                // Now generate and show the code
+                gameIdDisplay.value = currentGameId;
+                // REMOVED link generation
+
+                hideAllScreens();
+                waitingScreen.classList.remove('hidden');
+
+            } catch (e) {
+                showError("Failed to set rounds. Please try again.", false);
+            } finally {
+                setRoundsBtn.disabled = false;
             }
         }
 
@@ -630,12 +818,14 @@
                     guesserId: userId,
                     currentGuesser: userId,
                     players: players,
-                    gameState: 'waiting_for_word'
+                    gameState: 'waiting_for_word', // Trigger first round
+                    currentRound: 1 // Start round 1
                 });
 
                 currentGameId = gameId;
                 isGameCreator = false;
                 joinGameIdInput.value = '';
+                joinInviteMessage.classList.add('hidden');
 
                 attachGameListener(currentGameId);
 
@@ -645,23 +835,28 @@
             }
         }
 
-        /**
-         * Attaches a real-time listener to the game document.
-         */
         function attachGameListener(gameId) {
             const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, gameId);
             
-            if (unsubscribeListener) unsubscribeListener();
+            if (gameUnsubscribe) gameUnsubscribe();
 
-            unsubscribeListener = onSnapshot(gameRef, (docSnap) => {
+            gameUnsubscribe = onSnapshot(gameRef, (docSnap) => {
                 if (!docSnap.exists()) {
                     showError("The game was canceled or deleted.");
                     resetGame();
                     return;
                 }
 
+                const oldData = currentRoomData;
                 currentRoomData = docSnap.data();
                 const data = currentRoomData;
+
+                // Show emoji reaction
+                if (data.lastEmoji && data.lastEmoji.timestamp && 
+                    (!oldData.lastEmoji || data.lastEmoji.timestamp !== oldData.lastEmoji.timestamp) &&
+                    data.lastEmoji.senderId !== userId) {
+                    showEmojiReaction(data.lastEmoji.emoji);
+                }
 
                 secretWord = data.secretWord;
                 guessedLetters = data.guessedLetters;
@@ -670,35 +865,53 @@
                 const amIWordSetter = userId === data.currentWordSetter;
                 const amIGuesser = userId === data.currentGuesser;
 
-                // State machine
+                // Show chat icon once game starts
+                if (data.gameState !== 'setting_rounds' && data.gameState !== 'waiting_for_guesser') {
+                    chatToggleBtn.classList.remove('hidden');
+                } else {
+                    chatToggleBtn.classList.add('hidden');
+                }
+
                 switch (data.gameState) {
+                    case 'setting_rounds':
+                        if (amIWordSetter) {
+                            hideAllScreens();
+                            roundSelectionScreen.classList.remove('hidden');
+                        } else {
+                            // This state shouldn't be seen by guesser
+                            showError("Waiting for creator to set up match...");
+                        }
+                        break;
+
                     case 'waiting_for_guesser':
                         hideAllScreens();
                         waitingScreen.classList.remove('hidden');
-                        chatToggleBtn.classList.add('hidden');
-                        chatContainer.classList.add('hidden');
                         break;
                     
                     case 'waiting_for_word':
                         hideAllScreens();
+                        chatToggleBtn.classList.remove('hidden');
+                        timerDisplay.classList.add('hidden');
+                        stopRoundTimer();
                         if (amIWordSetter) {
                             setWordScreen.classList.remove('hidden');
                         } else {
                             waitForWordScreen.classList.remove('hidden');
                         }
-                        chatToggleBtn.classList.remove('hidden'); // Show chat icon
                         break;
                     
                     case 'playing':
                         hideAllScreens();
                         gameScreen.classList.remove('hidden');
+                        chatToggleBtn.classList.remove('hidden');
                         scoreDisplay.classList.remove('hidden');
+                        timerDisplay.classList.remove('hidden');
                         gameMessage.classList.add('hidden');
-                        chatToggleBtn.classList.remove('hidden'); // Show chat icon
                         
+                        startRoundTimer(data.roundEndTime);
                         renderScoreDisplay();
                         renderWordDisplay();
-                        renderKeyboard(amIGuesser); // Only guesser can click
+                        renderKeyboard(amIGuesser);
                         updateHangmanDrawing();
                         updateWrongGuessesDisplay();
                         break;
@@ -706,124 +919,45 @@
                     case 'game_over':
                         hideAllScreens();
                         gameScreen.classList.remove('hidden');
+                        chatToggleBtn.classList.remove('hidden');
                         scoreDisplay.classList.remove('hidden');
-                        chatToggleBtn.classList.remove('hidden'); // Show chat icon
+                        timerDisplay.classList.remove('hidden');
                         
+                        stopRoundTimer();
                         renderScoreDisplay();
                         renderWordDisplay();
-                        renderKeyboard(false); // Disable keyboard for all
+                        renderKeyboard(false);
                         updateHangmanDrawing();
                         updateWrongGuessesDisplay();
                         
-                        endGame(data.lastWinnerId === userId);
+                        // Check if match is over or just the round
+                        if (data.currentRound >= data.totalRounds) {
+                            endGame(data.lastWinnerId === userId, true); // Match is over
+                        } else {
+                            endGame(data.lastWinnerId === userId, false); // Round is over
+                        }
+                        break;
+                    
+                    case 'leaderboard':
+                        hideAllScreens();
+                        leaderboardScreen.classList.remove('hidden');
+                        renderLeaderboard();
                         break;
                 }
             });
 
-            // Also attach the chat listener
-            attachChatListener(gameId);
-        }
+            // --- Attach Chat Listener ---
+            const chatCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`, gameId, 'messages');
+            const q = query(chatCollection, orderBy("timestamp", "desc"));
 
-        /**
-         * Attaches a listener for the chat messages subcollection.
-         */
-        function attachChatListener(gameId) {
-            if (unsubscribeChatListener) unsubscribeChatListener();
-
-            const messagesCol = collection(db, `artifacts/${appId}/public/data/hangmanGames`, gameId, 'messages');
-            const messagesQuery = query(messagesCol);
-
-            unsubscribeChatListener = onSnapshot(messagesQuery, (querySnapshot) => {
-                let messages = [];
-                querySnapshot.forEach((doc) => {
-                    messages.push(doc.data());
+            if (chatUnsubscribe) chatUnsubscribe();
+            
+            chatUnsubscribe = onSnapshot(q, (querySnapshot) => {
+                chatMessages.innerHTML = '';
+                querySnapshot.docs.reverse().forEach(doc => { // Show oldest first
+                    renderChatMessage(doc.data());
                 });
-                
-                messages.sort((a, b) => (a.timestamp?.seconds || 0) - (b.timestamp?.seconds || 0));
-                
-                chatMessages.innerHTML = ''; // Clear chat
-                messages.forEach(appendChatMessage);
             });
-        }
-
-        /**
-         * Appends a single message to the chat box UI.
-         */
-        function appendChatMessage(msgData) {
-            const msgDiv = document.createElement('div');
-            msgDiv.classList.add('chat-message', 'py-1');
-            
-            const senderName = msgData.senderId === userId ? "You" : "Friend";
-            
-            const isEmoji = /^\p{Emoji}$/u.test(msgData.text);
-            let bubbleClasses = 'chat-bubble ';
-            
-            if (isEmoji) {
-                bubbleClasses += 'emoji-only';
-            } else {
-                bubbleClasses += 'text-base';
-            }
-
-            if (msgData.senderId === userId) {
-                msgDiv.classList.add('my-message', 'gap-2');
-                bubbleClasses += isEmoji ? '' : ' bg-indigo-500 text-white';
-                msgDiv.innerHTML = `
-                    <span class="${bubbleClasses}">${msgData.text}</span>
-                    <strong class="text-sm text-indigo-600">${senderName}</strong>
-                `;
-            } else {
-                msgDiv.classList.add('friend-message', 'gap-2');
-                bubbleClasses += isEmoji ? '' : ' bg-gray-200 text-gray-800';
-                msgDiv.innerHTML = `
-                    <strong class="text-sm text-gray-700">${senderName}</strong>
-                    <span class="${bubbleClasses}">${msgData.text}</span>
-                `;
-            }
-            
-            chatMessages.appendChild(msgDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-        }
-
-        /**
-         * Handles sending a chat message (from input or emoji button).
-         */
-        async function handleSendMessage(messageText = null) {
-            const text = messageText ? messageText : chatInput.value.trim();
-            if (text.length === 0) return;
-
-            if (secretWord && secretWord.length > 2 && text.toUpperCase().includes(secretWord.toUpperCase())) {
-                chatError.textContent = "You can't send the secret word in the chat!";
-                chatError.classList.remove('hidden');
-                setTimeout(() => chatError.classList.add('hidden'), 3000);
-                return;
-            }
-
-            if (!messageText) {
-                chatInput.value = '';
-            }
-            chatError.classList.add('hidden');
-
-            try {
-                const messagesCol = collection(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId, 'messages');
-                await addDoc(messagesCol, {
-                    text: text,
-                    senderId: userId,
-                    timestamp: serverTimestamp()
-                });
-            } catch (e) {
-                chatError.textContent = "Error sending message. Check rules.";
-                chatError.classList.remove('hidden');
-            }
-        }
-
-        /**
-         * Handles clicking on the emoji bar.
-         */
-        function handleEmojiClick(e) {
-            if (e.target.classList.contains('emoji-reaction-btn')) {
-                const emoji = e.target.dataset.emoji;
-                handleSendMessage(emoji);
-            }
         }
 
         async function setOnlineWord() {
@@ -833,11 +967,14 @@
             setOnlineWordBtn.disabled = true;
             try {
                 const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                const roundEndTime = Date.now() + ROUND_DURATION;
+                
                 await updateDoc(gameRef, {
                     secretWord: word,
                     guessedLetters: [...vowels],
                     wrongGuesses: 0,
-                    gameState: 'playing'
+                    gameState: 'playing',
+                    roundEndTime: roundEndTime // Set the timer
                 });
                 onlineSecretWordInput.value = '';
                 setWordError.classList.add('hidden');
@@ -892,7 +1029,7 @@
                 button.disabled = false;
             }
         }
-        
+
         async function startNextRound() {
             playAgainBtn.disabled = true;
             try {
@@ -900,11 +1037,13 @@
                 await updateDoc(gameRef, {
                     currentWordSetter: currentRoomData.currentGuesser,
                     currentGuesser: currentRoomData.currentWordSetter,
+                    currentRound: currentRoomData.currentRound + 1,
                     gameState: 'waiting_for_word',
                     secretWord: '',
                     guessedLetters: [],
                     wrongGuesses: 0,
-                    lastWinnerId: null
+                    lastWinnerId: null,
+                    roundEndTime: null
                 });
             } catch (e) {
                 showError("Error starting next round. Please try again.", false);
@@ -913,6 +1052,55 @@
             }
         }
         
+        // --- TIMER FUNCTIONS ---
+        
+        function startRoundTimer(endTime) {
+            stopRoundTimer(); // Clear any existing timer
+
+            roundTimerInterval = setInterval(() => {
+                const remainingMs = endTime - Date.now();
+                
+                if (remainingMs <= 0) {
+                    stopRoundTimer();
+                    timerText.textContent = "00:00";
+                    // Only the guesser can trigger the time-up event
+                    if (userId === currentRoomData.currentGuesser && currentRoomData.gameState === 'playing') {
+                        handleTimeUp();
+                    }
+                    return;
+                }
+
+                const minutes = Math.floor(remainingMs / 60000);
+                const seconds = Math.floor((remainingMs % 60000) / 1000);
+                timerText.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        function stopRoundTimer() {
+            if (roundTimerInterval) {
+                clearInterval(roundTimerInterval);
+                roundTimerInterval = null;
+            }
+        }
+
+        async function handleTimeUp() {
+            // Guesser ran out of time, setter wins
+            const newScores = currentRoomData.players;
+            const winnerId = currentRoomData.currentWordSetter;
+            newScores[winnerId].score++;
+            
+            try {
+                const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                await updateDoc(gameRef, { 
+                    gameState: 'game_over', 
+                    lastWinnerId: winnerId, 
+                    players: newScores 
+                });
+            } catch (e) {
+                showError("Error finalizing round. Please try again.", false);
+            }
+        }
+
         // --- COMMON GAME FUNCTIONS ---
 
         function validateWord(word, onSetup = true) {
@@ -920,12 +1108,8 @@
                 showError('Please enter a word or phrase.', onSetup);
                 return false;
             }
-            if (word.length < 3) {
-                showError('Word must be at least 3 letters long.', onSetup);
-                return false;
-            }
-            const hasConsonant = word.split('').some(letter => consonants.includes(letter));
-            if (!hasConsonant) {
+            const hasConsonant = word.split('').every(char => char === ' ' || vowels.includes(char));
+            if (hasConsonant) {
                  showError('Please enter a word with at least one consonant.', onSetup);
                 return false;
             }
@@ -943,6 +1127,7 @@
             const opponentScore = currentRoomData.players[opponentId]?.score || 0;
 
             scoreText.textContent = `You: ${myScore}  -  Friend: ${opponentScore}`;
+            roundText.textContent = `Round ${currentRoomData.currentRound} / ${currentRoomData.totalRounds}`;
         }
         
         function renderWordDisplay() {
@@ -967,38 +1152,45 @@
         }
         
         function renderKeyboard(canGuess) {
-            keyboardButtons.innerHTML = '';
-            consonants.forEach(letter => {
-                const button = document.createElement('button');
-                button.textContent = letter;
-                button.classList.add(
-                    'keyboard-button', 'w-12', 'h-12', 'md:w-14', 'md:h-14', 
-                    'bg-indigo-500', 'text-white', 
-                    'font-extrabold', 'text-xl', 'rounded-lg', 'shadow-md'
-                );
-                button.dataset.letter = letter;
+            keyboardArea.innerHTML = ''; // Clear previous content
 
-                if (!canGuess || guessedLetters.includes(letter)) {
-                    button.disabled = true;
-                }
+            if (canGuess) {
+                keyboardArea.appendChild(keyboardButtons);
+                spectatorView.classList.add('hidden');
+                keyboardButtons.innerHTML = ''; // Clear old buttons
+                consonants.forEach(letter => {
+                    const button = document.createElement('button');
+                    button.textContent = letter;
+                    button.classList.add(
+                        'keyboard-button', 'w-12', 'h-12', 'md:w-14', 'md:h-14', 
+                        'bg-indigo-500', 'text-white', 
+                        'font-extrabold', 'text-xl', 'rounded-lg', 'shadow-md'
+                    );
+                    button.dataset.letter = letter;
 
-                if (guessedLetters.includes(letter)) {
-                    if (secretWord.includes(letter)) {
-                         button.classList.add('bg-green-500', 'text-white');
-                    } else {
-                         button.classList.add('bg-red-500', 'text-white');
+                    if (guessedLetters.includes(letter)) {
+                        button.disabled = true;
+                        if (secretWord.includes(letter)) {
+                            button.classList.add('bg-green-500', 'text-white');
+                        } else {
+                            button.classList.add('bg-red-500', 'text-white');
+                        }
                     }
-                }
 
-                button.addEventListener('click', () => {
-                    if (gameMode === 'local') {
-                        handleGuessLocal(button);
-                    } else if (gameMode === 'online' && canGuess) {
-                        handleGuessOnline(button);
-                    }
+                    button.addEventListener('click', () => {
+                        if (gameMode === 'local') {
+                            handleGuessLocal(button);
+                        } else if (gameMode === 'online' && canGuess) {
+                            handleGuessOnline(button);
+                        }
+                    });
+                    keyboardButtons.appendChild(button);
                 });
-                keyboardButtons.appendChild(button);
-            });
+            } else {
+                // Show spectator view
+                keyboardArea.appendChild(spectatorView);
+                spectatorView.classList.remove('hidden');
+            }
         }
         
         function updateWrongGuessesDisplay() {
@@ -1021,7 +1213,9 @@
             }
         }
         
-        function endGame(isWin) {
+        function endGame(isWin, isMatchOver = false) {
+            stopRoundTimer(); // Stop timer as soon as game ends
+            
             if (isWin) {
                 messageText.textContent = 'YOU WIN!';
                 messageText.classList.add('text-green-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-500', 'animate-pulse');
@@ -1036,27 +1230,66 @@
             
             if (gameMode === 'local') {
                 playAgainBtn.textContent = 'Play Again';
+            } else if (isMatchOver) {
+                playAgainBtn.textContent = 'View Results';
             } else {
                 playAgainBtn.textContent = 'Next Round';
             }
             gameMessage.classList.remove('hidden');
         }
 
-        function handlePlayAgain() {
+        async function handlePlayAgain() {
             if (gameMode === 'local') {
                 resetGame();
             } else {
-                startNextRound();
+                // Check if match is over
+                if (currentRoomData.currentRound >= currentRoomData.totalRounds) {
+                    // Go to leaderboard
+                    try {
+                        const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                        await updateDoc(gameRef, { gameState: 'leaderboard' });
+                    } catch (e) {
+                        showError("Error showing leaderboard.", false);
+                    }
+                } else {
+                    // Start next round
+                    startNextRound();
+                }
+            }
+        }
+
+        function renderLeaderboard() {
+            const myScore = currentRoomData.players[userId]?.score || 0;
+            const opponentId = (userId === currentRoomData.creatorId) ? currentRoomData.guesserId : currentRoomData.creatorId;
+            const opponentScore = currentRoomData.players[opponentId]?.score || 0;
+            
+            finalScoreYou.textContent = `You: ${myScore}`;
+            finalScoreFriend.textContent = `Friend: ${opponentScore}`;
+
+            if (myScore > opponentScore) {
+                winnerAnnouncement.textContent = 'Congratulations, You Win!';
+                winnerAnnouncement.classList.remove('text-red-600', 'text-gray-600');
+                winnerAnnouncement.classList.add('text-green-600');
+                fireConfetti();
+            } else if (opponentScore > myScore) {
+                winnerAnnouncement.textContent = 'Your Friend Wins!';
+                winnerAnnouncement.classList.remove('text-green-600', 'text-gray-600');
+                winnerAnnouncement.classList.add('text-red-600');
+            } else {
+                winnerAnnouncement.textContent = "It's a Tie!";
+                winnerAnnouncement.classList.remove('text-green-600', 'text-red-600');
+                winnerAnnouncement.classList.add('text-gray-600');
             }
         }
 
         function resetGame() {
             if (gameMode === 'online') {
-                if (unsubscribeListener) unsubscribeListener();
-                if (unsubscribeChatListener) unsubscribeChatListener();
-                unsubscribeListener = null;
-                unsubscribeChatListener = null;
+                if (gameUnsubscribe) gameUnsubscribe();
+                if (chatUnsubscribe) chatUnsubscribe();
+                gameUnsubscribe = null;
+                chatUnsubscribe = null;
             }
+            stopRoundTimer();
 
             secretWord = '';
             guessedLetters = [];
@@ -1065,6 +1298,7 @@
             isGameCreator = false;
             currentRoomData = {};
             gameMode = 'local';
+            selectedRounds = 3;
 
             hideAllScreens();
             modeSelectionScreen.classList.remove('hidden');
@@ -1072,19 +1306,18 @@
             gameMessage.classList.add('hidden');
             wrongGuessesDisplay.textContent = '';
             updateHangmanDrawing();
-            chatToggleBtn.classList.add('hidden'); // --- NEW ---
-            chatContainer.classList.add('hidden');
-            chatMessages.innerHTML = '';
             
             setupError.classList.add('hidden');
+    
             localSetupError.classList.add('hidden');
             setWordError.classList.add('hidden');
-            chatError.classList.add('hidden');
+            roundError.classList.add('hidden');
+            joinInviteMessage.classList.add('hidden');
             if (isFirebaseInitialized) {
                 enableOnlineButtons();
             }
             
-            messageText.classList.remove('text-green-600', 'text-red-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-500', 'animate-pulse');
+            messageText.classList.remove('text-green-600', 'text-red-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-5g00', 'animate-pulse');
             messageText.style.backgroundImage = '';
         }
 
@@ -1098,22 +1331,31 @@
                 const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                 await deleteDoc(gameRef);
             } catch (e) {
-                resetGame();
+                // Ignore error, just reset
             } finally {
+                resetGame();
                 cancelGameBtn.disabled = false;
             }
         }
 
-        function copyGameId() {
-            gameIdDisplay.select();
+        function copyToClipboard(text, button, defaultText = 'Copy') {
             try {
+                // Use execCommand for broader compatibility in iFrames
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
                 document.execCommand('copy');
-                copyGameIdBtn.textContent = 'Copied!';
+                document.body.removeChild(ta);
+                
+                button.textContent = 'Copied!';
             } catch (err) {
-                copyGameIdBtn.textContent = 'Copy Failed';
+                button.textContent = 'Copy Failed';
             }
             setTimeout(() => {
-                copyGameIdBtn.textContent = 'Copy ID';
+                button.textContent = defaultText;
             }, 2000);
         }
 
@@ -1131,6 +1373,116 @@
                 confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
             }, 250);
         }
+
+        // --- CHAT FUNCTIONS ---
+        function toggleChatPopup() {
+            chatPopup.classList.toggle('hidden');
+            setTimeout(() => {
+                chatPopup.classList.toggle('scale-0');
+                chatPopup.classList.toggle('scale-100');
+            }, 10); // Short delay to allow 'hidden' to apply first
+        }
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const messageText = chatInput.value.trim();
+            if (messageText.length === 0) return;
+
+            // Anti-cheat check
+            if (secretWord && messageText.toUpperCase().includes(secretWord) && secretWord.length > 2) {
+                chatInput.value = '';
+                showChatError("You can't send the secret word!");
+                return;
+            }
+
+            await sendChatMessage(messageText);
+            chatInput.value = '';
+        }
+        
+        async function handleEmojiClick(e) {
+            if (e.target.classList.contains('emoji-reaction-btn')) {
+                const emoji = e.target.dataset.emoji;
+                await sendChatMessage(emoji, true);
+            }
+        }
+
+        async function sendChatMessage(text, isEmoji = false) {
+            if (!currentGameId || !userId) return;
+
+            try {
+                const chatCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId, 'messages');
+                await addDoc(chatCollection, {
+                    text: text,
+                    senderId: userId,
+                    isEmoji: isEmoji,
+                    timestamp: serverTimestamp()
+                });
+
+                if (isEmoji) {
+                    const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                    await updateDoc(gameRef, {
+                        lastEmoji: {
+                            emoji: text,
+                            senderId: userId,
+                            timestamp: Date.now() // Use client time for uniqueness
+                        }
+                    });
+                }
+
+            } catch (e) {
+                console.error("Error sending message: ", e);
+                showChatError("Error sending message.");
+            }
+        }
+
+        function renderChatMessage(data) {
+            if (!data) return;
+            const isMe = data.senderId === userId;
+            const msgDiv = document.createElement('div');
+            
+            if (data.isEmoji) {
+                // Emoji message
+                msgDiv.classList.add('text-5xl', isMe ? 'text-right' : 'text-left');
+                msgDiv.textContent = data.text;
+            } else {
+                // Text message
+                msgDiv.classList.add('w-full', 'flex', isMe ? 'justify-end' : 'justify-start');
+                const bubble = document.createElement('div');
+                bubble.classList.add('p-3', 'rounded-2xl', 'max-w-[75%]', 'shadow', 'break-words');
+                bubble.textContent = data.text;
+                
+                if (isMe) {
+                    bubble.classList.add('bg-indigo-500', 'text-white', 'rounded-br-none');
+                } else {
+                    bubble.classList.add('bg-gray-200', 'text-gray-800', 'rounded-bl-none');
+                }
+                msgDiv.appendChild(bubble);
+            }
+            
+            chatMessages.appendChild(msgDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll
+        }
+        
+        function showChatError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.classList.add('w-full', 'text-center', 'text-red-500', 'text-sm', 'italic');
+            errorDiv.textContent = message;
+            chatMessages.appendChild(errorDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showEmojiReaction(emoji) {
+            emojiDisplayArea.textContent = emoji;
+            emojiDisplayArea.classList.add('pop-and-fade');
+            setTimeout(() => {
+                emojiDisplayArea.classList.remove('pop-and-fade');
+                emojiDisplayArea.textContent = '';
+            }, 2000);
+        }
+
+        // --- Initial Load ---
+        // REMOVED checkUrlForGameId() call
+
     </script>
 </body>
 </html>
