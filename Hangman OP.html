@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hangman Game</title>
+    <!-- Load Tailwind CSS --><script src="https://cdn.tailwindcss.com"></script>
+    <!-- Load Canvas Confetti --><script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        /* Custom styles for the game */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(to right bottom, #6366f1, #22d3ee); /* Indigo 500 to Cyan 400 gradient */
+        }
+        /* Style for the hangman SVG parts */
+        .hangman-part {
+            fill: none;
+            stroke: #333;
+            stroke-width: 4;
+            stroke-linecap: round;
+            /* Hide all parts initially */
+            visibility: hidden;
+            transition: visibility 0.3s ease-in-out; /* Smooth reveal */
+        }
+        /* The base gallows is always visible */
+        #gallows-base, #gallows-pole, #gallows-beam, #gallows-rope {
+            visibility: visible;
+        }
+
+        /* Styles for keyboard buttons */
+        .keyboard-button {
+            transition: all 0.15s ease-in-out;
+            transform: scale(1);
+        }
+        .keyboard-button:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+        }
+        .keyboard-button:active:not(:disabled) {
+            transform: scale(0.98);
+            background-color: #4f46e5; /* Deeper indigo */
+            box-shadow: none;
+        }
+        .keyboard-button:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+            background-color: #e0e0e0 !important; /* Lighter disabled background */
+            color: #888 !important;
+            box-shadow: none;
+        }
+
+        /* Simple loading spinner */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
+
+    <div class="container mx-auto max-w-lg w-full bg-white rounded-2xl shadow-2xl p-6 md:p-10 transform transition-all duration-300 ease-in-out scale-100">
+        
+        <!-- === Mode Selection Screen === -->
+        <div id="mode-selection-screen" class="space-y-6">
+            <h1 class="text-4xl font-extrabold text-center text-indigo-700">Hangman Challenge</h1>
+            <p class="text-center text-lg text-gray-700">How do you want to play?</p>
+            <button id="play-local-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                Play Locally (Hot-Seat)
+            </button>
+            <button id="play-online-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                Play Online with Friends
+            </button>
+        </div>
+
+        <!-- === Local Setup Screen === -->
+        <div id="local-setup-screen" class="hidden space-y-8">
+            <h1 class="text-3xl font-extrabold text-center text-indigo-700">Local Game</h1>
+            <p class="text-center text-gray-700 text-lg">Enter a secret word or phrase. Vowels will be revealed automatically!</p>
+            <div>
+                <label for="local-secret-word-input" class="block text-sm font-medium text-gray-700 mb-2">Secret Word</label>
+                <input type="password" id="local-secret-word-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="e.g., The Matrix">
+            </div>
+            <button id="start-local-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                Start Local Game
+            </button>
+            <p id="local-setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+            <button id="back-to-modes-local-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
+        </div>
+
+        <!-- === Online Setup Screen === -->
+        <div id="online-setup-screen" class="hidden space-y-8">
+            <h1 class="text-3xl font-extrabold text-center text-indigo-700">Online Game</h1>
+            
+            <!-- Create Game -->
+            <div class="border p-4 rounded-lg space-y-4">
+                <h2 class="text-2xl font-bold text-gray-800 text-center">Create a Game</h2>
+                <p class="text-center text-gray-600">Enter a secret word. Vowels will be revealed automatically!</p>
+                <div>
+                    <label for="secret-word-input" class="block text-sm font-medium text-gray-700 mb-2">Secret Word</label>
+                    <input type="password" id="secret-word-input" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="e.g., The Matrix">
+                </div>
+                <button id="create-game-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Create Game
+                </button>
+            </div>
+
+            <!-- Join Game -->
+            <div class="border p-4 rounded-lg space-y-4">
+                <h2 class="text-2xl font-bold text-gray-800 text-center">Join a Game</h2>
+                <p class="text-center text-gray-600">Enter the Game ID your friend gave you.</p>
+                <div>
+                    <label for="join-game-id" class="block text-sm font-medium text-gray-700 mb-2">Game ID</label>
+                    <input type="text" id="join-game-id" class="w-full px-5 py-3 border border-gray-300 rounded-xl shadow-inner focus:outline-none focus:ring-3 focus:ring-indigo-400 text-lg" placeholder="Enter Game ID">
+                </div>
+                <button id="join-game-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Join Game
+                </button>
+            </div>
+            
+            <p id="setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+            <p id="user-id-display" class="text-center text-gray-500 text-xs break-all"></p>
+            <button id="back-to-modes-online-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
+        </div>
+
+        <!-- === Waiting Screen === -->
+        <div id="waiting-screen" class="hidden text-center space-y-6">
+            <h1 class="text-3xl font-extrabold text-indigo-700">Game Created!</h1>
+            <p class="text-lg text-gray-700">Share this Game ID with your friend:</p>
+            <div class="bg-gray-100 p-4 rounded-lg shadow-inner">
+                <input id="game-id-display" type="text" readonly class="w-full text-center text-2xl font-bold bg-transparent border-none text-gray-800" value="Loading...">
+                <button id="copy-game-id-btn" class="mt-4 bg-indigo-500 text-white font-bold py-2 px-6 rounded-lg hover:bg-indigo-600 transition">Copy ID</button>
+            </div>
+            <p class="text-lg text-gray-700">Waiting for a friend to join...</p>
+            <div class="loader"></div>
+            <button id="cancel-game-btn" class="text-sm text-red-600 hover:underline">Cancel Game</button>
+        </div>
+
+        <!-- === Game Screen === -->
+        <div id="game-screen" class="hidden">
+            <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-8">Guess the Word!</h1>
+            
+            <!-- Hangman Drawing -->
+            <div class="flex justify-center mb-8 bg-gray-50 p-4 rounded-lg shadow-inner">
+                <svg height="250" width="200" viewBox="0 0 200 250">
+                    <line id="gallows-base" x1="10" y1="230" x2="130" y2="230" class="hangman-part" style="stroke: #5a67d8;" />
+                    <line id="gallows-pole" x1="70" y1="230" x2="70" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
+                    <line id="gallows-beam" x1="70" y1="20" x2="170" y2="20" class="hangman-part" style="stroke: #5a67d8;" />
+                    <line id="gallows-rope" x1="170" y1="20" x2="170" y2="50" class="hangman-part" style="stroke: #ef4444;" />
+                    <circle id="head" cx="170" cy="70" r="20" class="hangman-part" style="stroke: #ef4444; fill: #fee2e2;" />
+                    <line id="body" x1="170" y1="90" x2="170" y2="150" class="hangman-part" style="stroke: #ef4444;" />
+                    <line id="arm-left" x1="170" y1="110" x2="140" y2="130" class="hangman-part" style="stroke: #ef4444;" />
+                    <line id="arm-right" x1="170" y1="110" x2="200" y2="130" class="hangman-part" style="stroke: #ef4444;" />
+                    <line id="leg-left" x1="170" y1="150" x2="140" y2="180" class="hangman-part" style="stroke: #ef4444;" />
+                    <line id="leg-right" x1="170" y1="150" x2="200" y2="180" class="hangman-part" style="stroke: #ef4444;" />
+                </svg>
+            </div>
+
+            <!-- Word Display -->
+            <div id="word-display" class="flex justify-center flex-wrap gap-x-3 md:gap-x-4 gap-y-2 mb-8 p-3 bg-indigo-50 rounded-lg shadow-inner text-indigo-900">
+            </div>
+
+            <!-- Wrong Guesses -->
+            <div class="mb-8 text-center bg-red-50 p-3 rounded-lg shadow-inner">
+                <h2 class="text-base font-semibold text-red-700 uppercase tracking-wide">Wrong Guesses:</h2>
+                <p id="wrong-guesses-display" class="text-2xl font-extrabold text-red-800 h-8 mt-1"></p>
+            </div>
+
+            <!-- Keyboard -->
+            <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
+            </div>
+
+            <!-- Game Over Message -->
+            <div id="game-message" class="text-center mt-10 space-y-5 hidden">
+                <h2 id="message-text" class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500 animate-pulse"></h2>
+                <button id="play-again-btn" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-full hover:bg-indigo-700 transition duration-300 shadow-xl text-xl transform hover:scale-[1.05]">
+                    Play Again
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInAnonymously, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            getDoc, 
+            addDoc,
+            updateDoc, 
+            deleteDoc,
+            onSnapshot, 
+            collection,
+            setLogLevel
+        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+
+        // --- FIREBASE CONFIGURATION (MANUALLY INSERTED) ---
+        // This configuration connects your game to your specific Firebase project.
+        const firebaseConfig = {
+            apiKey: "AIzaSyA7s5i4dmBWD0Qtzn6wvOjFuTbbRd9Z1ys",
+            authDomain: "new-game-8ba29.firebaseapp.com",
+            projectId: "new-game-8ba29",
+            storageBucket: "new-game-8ba29.firebasestorage.app",
+            messagingSenderId: "788607615409",
+            appId: "1:788607615409:web:a812b8d059333523dfbd90"
+        };
+        
+        // Use the Project ID for the global app identifier, mandatory for storage paths.
+        const appId = firebaseConfig.projectId;
+
+
+        // --- DOM Elements ---
+        const modeSelectionScreen = document.getElementById('mode-selection-screen');
+        const localSetupScreen = document.getElementById('local-setup-screen');
+        const onlineSetupScreen = document.getElementById('online-setup-screen');
+        const waitingScreen = document.getElementById('waiting-screen');
+        const gameScreen = document.getElementById('game-screen');
+        
+        // Mode buttons
+        const playLocalBtn = document.getElementById('play-local-btn');
+        const playOnlineBtn = document.getElementById('play-online-btn');
+
+        // Local setup
+        const localSecretWordInput = document.getElementById('local-secret-word-input');
+        const startLocalGameBtn = document.getElementById('start-local-game-btn');
+        const localSetupError = document.getElementById('local-setup-error');
+        const backToModesLocalBtn = document.getElementById('back-to-modes-local-btn');
+
+        // Online setup
+        const secretWordInput = document.getElementById('secret-word-input');
+        const createGameBtn = document.getElementById('create-game-btn');
+        const joinGameIdInput = document.getElementById('join-game-id');
+        const joinGameBtn = document.getElementById('join-game-btn');
+        const setupError = document.getElementById('setup-error');
+        const userIdDisplay = document.getElementById('user-id-display');
+        const backToModesOnlineBtn = document.getElementById('back-to-modes-online-btn');
+
+        // Waiting screen
+        const gameIdDisplay = document.getElementById('game-id-display');
+        const copyGameIdBtn = document.getElementById('copy-game-id-btn');
+        const cancelGameBtn = document.getElementById('cancel-game-btn');
+        
+        // Game screen
+        const wordDisplay = document.getElementById('word-display');
+        const keyboardButtons = document.getElementById('keyboard-buttons');
+        const wrongGuessesDisplay = document.getElementById('wrong-guesses-display');
+        const gameMessage = document.getElementById('game-message');
+        const messageText = document.getElementById('message-text');
+        const playAgainBtn = document.getElementById('play-again-btn');
+
+        const hangmanParts = ['head', 'body', 'arm-left', 'arm-right', 'leg-left', 'leg-right'];
+
+        // --- Game State ---
+        let gameMode = 'local'; // 'local' or 'online'
+        let secretWord = '';
+        let guessedLetters = [];
+        let wrongGuesses = 0;
+        const maxWrongGuesses = 6;
+        const vowels = ['A', 'E', 'I', 'O', 'U'];
+        const consonants = 'BCDFGHJKLMNPQRSTVWXYZ'.split('');
+
+        // --- Firebase State ---
+        let app, auth, db;
+        let userId;
+        let currentGameId = null;
+        let isGameCreator = false;
+        let unsubscribeListener = null;
+        let isFirebaseInitialized = false;
+        
+
+        // --- Firebase Init ---
+        async function initializeFirebase() {
+            // Only init once
+            if (isFirebaseInitialized) {
+                enableOnlineButtons();
+                return;
+            }
+            
+            try {
+                // We use the hardcoded firebaseConfig object defined above.
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                setLogLevel('Debug');
+                isFirebaseInitialized = true;
+
+                // Listen for auth state changes
+                onAuthStateChanged(auth, async (user) => {
+                    if (user) {
+                        // User is signed in.
+                        userId = user.uid;
+                        userIdDisplay.textContent = `Your User ID: ${userId}`;
+                        enableOnlineButtons();
+                    } else {
+                        // User is signed out. Try to sign in anonymously.
+                        try {
+                            await signInAnonymously(auth);
+                        } catch (authError) {
+                            showError("Authentication failed. Online features are disabled.");
+                            disableOnlineButtons();
+                        }
+                    }
+                });
+
+            } catch (e) {
+                showError("Error initializing Firebase. Are you online? This mode only works on a live server.");
+                disableOnlineButtons();
+            }
+        }
+        
+        function showError(message, onSetup = true) {
+            const errorP = onSetup ? (gameMode === 'local' ? localSetupError : setupError) : setupError;
+            errorP.textContent = message;
+            errorP.classList.remove('hidden');
+        }
+
+        function disableOnlineButtons() {
+            createGameBtn.disabled = true;
+            joinGameBtn.disabled = true;
+            createGameBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            joinGameBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        function enableOnlineButtons() {
+            createGameBtn.disabled = false;
+            joinGameBtn.disabled = false;
+            createGameBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            joinGameBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        // --- Event Listeners ---
+        playLocalBtn.addEventListener('click', () => {
+            gameMode = 'local';
+            modeSelectionScreen.classList.add('hidden');
+            localSetupScreen.classList.remove('hidden');
+        });
+        
+        playOnlineBtn.addEventListener('click', () => {
+            gameMode = 'online';
+            modeSelectionScreen.classList.add('hidden');
+            onlineSetupScreen.classList.remove('hidden');
+            initializeFirebase(); // Initialize Firebase ONLY when this mode is selected
+        });
+
+        startLocalGameBtn.addEventListener('click', startLocalGame);
+        backToModesLocalBtn.addEventListener('click', resetGame);
+        backToModesOnlineBtn.addEventListener('click', resetGame);
+
+        // Online listeners
+        createGameBtn.addEventListener('click', createGame);
+        joinGameBtn.addEventListener('click', joinGame);
+        cancelGameBtn.addEventListener('click', cancelGame);
+        copyGameIdBtn.addEventListener('click', copyGameId);
+        
+        // Global listener
+        playAgainBtn.addEventListener('click', resetGame);
+
+
+        // --- LOCAL GAME FUNCTIONS ---
+        function startLocalGame() {
+            const word = localSecretWordInput.value.trim().toUpperCase();
+
+            if (word.length === 0) {
+                showError('Please enter a word or phrase.');
+                return;
+            }
+            
+            const hasConsonant = word.split('').some(letter => consonants.includes(letter));
+            if (!hasConsonant) {
+                 showError('Please enter a word with at least one consonant.');
+                return;
+            }
+
+            // Set local game state
+            secretWord = word;
+            guessedLetters = [...vowels];
+            wrongGuesses = 0;
+            isGameCreator = false; // Not relevant, but ensures keyboard is enabled
+            
+            localSecretWordInput.value = '';
+            localSetupError.classList.add('hidden');
+            
+            // Show game screen
+            localSetupScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+
+            // Render game
+            renderWordDisplay();
+            renderKeyboard();
+            updateHangmanDrawing();
+            wrongGuessesDisplay.textContent = '';
+            gameMessage.classList.add('hidden');
+        }
+
+        function handleGuessLocal(button) {
+            const letter = button.dataset.letter;
+
+            // Disable the button
+            button.disabled = true;
+            guessedLetters.push(letter);
+
+            if (secretWord.includes(letter)) {
+                // Correct guess
+                renderWordDisplay();
+                button.classList.add('bg-green-500', 'text-white');
+            } else {
+                // Incorrect guess
+                wrongGuesses++;
+                updateWrongGuessesDisplay();
+                updateHangmanDrawing();
+                button.classList.add('bg-red-500', 'text-white');
+            }
+
+            // Check for win/loss
+            const allLettersGuessed = secretWord.split('').every(
+                char => char === ' ' || guessedLetters.includes(char)
+            );
+
+            if (allLettersGuessed) {
+                endGame(true);
+            } else if (wrongGuesses >= maxWrongGuesses) {
+                endGame(false);
+            }
+        }
+
+        // --- ONLINE GAME FUNCTIONS ---
+
+        /**
+         * Creates a new game document in Firestore.
+         */
+        async function createGame() {
+            const word = secretWordInput.value.trim().toUpperCase();
+
+            if (word.length === 0) {
+                showError('Please enter a word or phrase.');
+                return;
+            }
+            
+            const hasConsonant = word.split('').some(letter => consonants.includes(letter));
+            if (!hasConsonant) {
+                 showError('Please enter a word with at least one consonant.');
+                return;
+            }
+
+            disableOnlineButtons();
+            
+            try {
+                const gameCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`);
+                const gameDoc = await addDoc(gameCollection, {
+                    secretWord: word,
+                    creatorId: userId,
+                    guesserId: null,
+                    guessedLetters: [...vowels], // Start with vowels revealed
+                    wrongGuesses: 0,
+                    status: 'waiting', // waiting, playing, won, lost
+                    createdAt: new Date().toISOString()
+                });
+                
+                currentGameId = gameDoc.id;
+                isGameCreator = true;
+                secretWordInput.value = ''; // Clear input
+
+                // Switch to waiting screen
+                gameIdDisplay.value = currentGameId;
+                onlineSetupScreen.classList.add('hidden');
+                waitingScreen.classList.remove('hidden');
+                
+                // Attach listener to wait for guesser
+                attachGameListener(currentGameId);
+
+            } catch (e) {
+                showError("Failed to create game. Please try again.");
+                enableOnlineButtons();
+            }
+        }
+
+        /**
+         * Joins an existing game using a Game ID.
+         */
+        async function joinGame() {
+            const gameId = joinGameIdInput.value.trim();
+            if (gameId.length === 0) {
+                showError('Please enter a Game ID to join.');
+                return;
+            }
+
+            disableOnlineButtons();
+
+            try {
+                const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, gameId);
+                const gameSnap = await getDoc(gameRef);
+
+                if (!gameSnap.exists()) {
+                    showError('Game not found. Check the ID and try again.');
+                    enableOnlineButtons();
+                    return;
+                }
+                
+                const gameData = gameSnap.data();
+
+                if (gameData.guesserId && gameData.guesserId !== userId) {
+                    showError('This game is already full.');
+                    enableOnlineButtons();
+                    return;
+                }
+
+                // Join the game
+                await updateDoc(gameRef, {
+                    guesserId: userId,
+                    status: 'playing'
+                });
+
+                currentGameId = gameId;
+                isGameCreator = false;
+                joinGameIdInput.value = '';
+
+                // Attach listener (this will also trigger screen change)
+                attachGameListener(currentGameId);
+
+            } catch (e) {
+                showError("Failed to join game. Please try again.");
+                enableOnlineButtons();
+            }
+        }
+
+        /**
+         * Attaches a real-time listener to the game document.
+         */
+        function attachGameListener(gameId) {
+            const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, gameId);
+            
+            if (unsubscribeListener) {
+                unsubscribeListener(); // Detach any old listener first
+            }
+
+            unsubscribeListener = onSnapshot(gameRef, (docSnap) => {
+                if (!docSnap.exists()) {
+                    // Game was deleted (e.g., by creator)
+                    showError("The game was canceled or deleted.");
+                    resetGame();
+                    return;
+                }
+
+                const gameData = docSnap.data();
+
+                // Update local state from Firestore
+                secretWord = gameData.secretWord;
+                guessedLetters = gameData.guessedLetters;
+                wrongGuesses = gameData.wrongGuesses;
+
+                // Handle game status
+                if (gameData.status === 'waiting' && !isGameCreator) {
+                    showError("Waiting for game to start...");
+                    return;
+                }
+                
+                if (gameData.status === 'playing' || gameData.status === 'won' || gameData.status === 'lost') {
+                    // Show game screen if not already visible
+                    if (gameScreen.classList.contains('hidden')) {
+                        onlineSetupScreen.classList.add('hidden');
+                        waitingScreen.classList.add('hidden');
+                        gameScreen.classList.remove('hidden');
+                        // Initial render
+                        renderWordDisplay();
+                        renderKeyboard();
+                    }
+
+                    // Update game state
+                    renderWordDisplay(); // Depends on secretWord, guessedLetters
+                    renderKeyboard(); // Depends on guessedLetters, isGameCreator
+                    updateWrongGuessesDisplay(); // Depends on secretWord, guessedLetters
+                    updateHangmanDrawing(); // Depends on wrongGuesses
+                }
+                
+                if (gameData.status === 'won') {
+                    endGame(true);
+                } else if (gameData.status === 'lost') {
+                    endGame(false);
+                }
+            });
+        }
+
+        /**
+         * Handles an online guess, updates Firestore.
+         */
+        async function handleGuessOnline(button) {
+            // Guesser only
+            if (isGameCreator) return; 
+
+            const letter = button.dataset.letter;
+            
+            // Prevent double-clicks
+            if (guessedLetters.includes(letter)) return;
+
+            button.disabled = true; 
+            
+            let newGuessedLetters = [...guessedLetters, letter];
+            let newWrongGuesses = wrongGuesses;
+            let newStatus = 'playing';
+
+            if (!secretWord.includes(letter)) {
+                newWrongGuesses++;
+            }
+
+            // Check for win
+            const allLettersGuessed = secretWord.split('').every(
+                char => char === ' ' || newGuessedLetters.includes(char)
+            );
+
+            if (allLettersGuessed) {
+                newStatus = 'won';
+            } else if (newWrongGuesses >= maxWrongGuesses) {
+                newStatus = 'lost';
+            }
+            
+            // Update Firestore
+            try {
+                const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                await updateDoc(gameRef, {
+                    guessedLetters: newGuessedLetters,
+                    wrongGuesses: newWrongGuesses,
+                    status: newStatus
+                });
+            } catch (e) {
+                showError("Error submitting guess. Please try again.", false);
+                button.disabled = false; // Re-enable if update fails
+            }
+        }
+        
+        // --- COMMON GAME FUNCTIONS ---
+        
+        /**
+         * Renders the secret word display (blanks and letters).
+         */
+        function renderWordDisplay() {
+            wordDisplay.innerHTML = '';
+            let allLettersGuessed = true; // Used only in local mode check
+            
+            secretWord.split('').forEach(char => {
+                const letterSpan = document.createElement('span');
+                letterSpan.classList.add('font-extrabold', 'text-2xl', 'md:text-4xl', 'uppercase');
+
+                if (char === ' ') {
+                    letterSpan.classList.add('w-4', 'md:w-6');
+                    letterSpan.innerHTML = '&nbsp;';
+                } else if (guessedLetters.includes(char)) {
+                    letterSpan.textContent = char;
+                    letterSpan.classList.add('text-indigo-900');
+                } else {
+                    letterSpan.textContent = '_';
+                    letterSpan.classList.add('text-indigo-300');
+                    allLettersGuessed = false;
+                }
+                wordDisplay.appendChild(letterSpan);
+            });
+
+            // Local mode win check (Online mode checks in handleGuessOnline)
+            if (gameMode === 'local' && allLettersGuessed && secretWord.length > 0) {
+                endGame(true);
+            }
+        }
+        
+        /**
+         * Renders the keyboard, disabling used letters or all if creator.
+         */
+        function renderKeyboard() {
+            keyboardButtons.innerHTML = '';
+            consonants.forEach(letter => {
+                const button = document.createElement('button');
+                button.textContent = letter;
+                button.classList.add(
+                    'keyboard-button', 'w-12', 'h-12', 'md:w-14', 'md:h-14', 
+                    'bg-indigo-500', 'text-white', 
+                    'font-extrabold', 'text-xl', 'rounded-lg', 'shadow-md'
+                );
+                button.dataset.letter = letter;
+
+                // Disable if online creator OR if letter is already guessed
+                if ((gameMode === 'online' && isGameCreator) || guessedLetters.includes(letter)) {
+                    button.disabled = true;
+                }
+
+                if (guessedLetters.includes(letter)) {
+                    if (secretWord.includes(letter)) {
+                         button.classList.add('bg-green-500', 'text-white');
+                    } else {
+                         button.classList.add('bg-red-500', 'text-white');
+                    }
+                }
+
+                // Add the correct guess handler based on game mode
+                button.addEventListener('click', () => {
+                    if (gameMode === 'local') {
+                        handleGuessLocal(button);
+                    } else if (gameMode === 'online') {
+                        handleGuessOnline(button);
+                    }
+                });
+                keyboardButtons.appendChild(button);
+            });
+        }
+        
+        /**
+         * Updates the display of wrong letters.
+         */
+        function updateWrongGuessesDisplay() {
+            const wrongLetters = guessedLetters.filter(
+                letter => !secretWord.includes(letter) && !vowels.includes(letter)
+            );
+            wrongGuessesDisplay.textContent = wrongLetters.join(', ');
+        }
+
+        /**
+         * Shows the hangman parts based on wrong guesses.
+         */
+        function updateHangmanDrawing() {
+            // Hide all parts first
+            hangmanParts.forEach(partId => {
+                if(document.getElementById(partId)) {
+                   document.getElementById(partId).style.visibility = 'hidden';
+                }
+            });
+            // Show parts based on wrong guesses
+            for (let i = 0; i < wrongGuesses; i++) {
+                if (hangmanParts[i] && document.getElementById(hangmanParts[i])) {
+                    document.getElementById(hangmanParts[i]).style.visibility = 'visible';
+                }
+            }
+        }
+        
+        /**
+         * Displays the end-game message (win or lose).
+         */
+        function endGame(isWin) {
+            // Disable the entire keyboard
+            keyboardButtons.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            if (isWin) {
+                messageText.textContent = 'YOU WIN!';
+                messageText.classList.add('text-green-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-500', 'animate-pulse');
+                messageText.style.backgroundImage = 'linear-gradient(to right, var(--tw-gradient-stops))';
+                fireConfetti();
+            } else {
+                messageText.textContent = 'GAME OVER!';
+                messageText.classList.add('text-red-600');
+                
+                // Reveal the full word
+                guessedLetters = [...secretWord.split('')];
+                renderWordDisplay();
+            }
+
+            gameMessage.classList.remove('hidden');
+        }
+
+        /**
+         * Resets the game to the mode selection screen.
+         */
+        function resetGame() {
+            if (gameMode === 'online' && unsubscribeListener) {
+                unsubscribeListener(); // Detach Firestore listener
+                unsubscribeListener = null;
+            }
+
+            // Reset game state
+            secretWord = '';
+            guessedLetters = [];
+            wrongGuesses = 0;
+            currentGameId = null;
+            isGameCreator = false;
+            gameMode = 'local'; // Default back to local
+
+            // Hide all screens
+            gameScreen.classList.add('hidden');
+            waitingScreen.classList.add('hidden');
+            onlineSetupScreen.classList.add('hidden');
+            localSetupScreen.classList.add('hidden');
+            
+            // Show main menu
+            modeSelectionScreen.classList.remove('hidden');
+            
+            // Reset game UI
+            gameMessage.classList.add('hidden');
+            wrongGuessesDisplay.textContent = '';
+            updateHangmanDrawing();
+            
+            // Clear any error messages
+            setupError.classList.add('hidden');
+            localSetupError.classList.add('hidden');
+            if (isFirebaseInitialized) {
+                enableOnlineButtons();
+            }
+            
+            // Clear gradients from message
+            messageText.classList.remove('text-green-600', 'text-red-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-500', 'animate-pulse');
+            messageText.style.backgroundImage = '';
+        }
+
+        /**
+         * Creator cancels the game from the waiting screen.
+         */
+        async function cancelGame() {
+            if (!currentGameId) {
+                resetGame();
+                return;
+            }
+            
+            cancelGameBtn.disabled = true;
+            
+            try {
+                // Delete the game doc
+                const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
+                await deleteDoc(gameRef);
+            } catch (e) {
+                // Ignore error, just reset
+            } finally {
+                resetGame();
+                cancelGameBtn.disabled = false;
+            }
+        }
+
+        function copyGameId() {
+            gameIdDisplay.select();
+            try {
+                document.execCommand('copy');
+                copyGameIdBtn.textContent = 'Copied!';
+            } catch (err) {
+                copyGameIdBtn.textContent = 'Copy Failed';
+            }
+            setTimeout(() => {
+                copyGameIdBtn.textContent = 'Copy ID';
+            }, 2000);
+        }
+
+        function fireConfetti() {
+            if (typeof confetti !== 'function') return;
+            const duration = 3 * 1000;
+            const animationEnd = Date.now() + duration;
+            const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function randomInRange(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            const interval = setInterval(function() {
+                const timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                const particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+        
+        // --- Start Initialization ---
+        // We DO NOT initialize Firebase here. It's initialized on-demand.
+
+    </script>
+</body>
+</html>
