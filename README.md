@@ -2,8 +2,6 @@
 
 Welcome to the ultimate Hangman game! This isn't just your classic word-guessing game; it's a full-featured, real-time multiplayer experience with multiple game modes, built entirely with HTML, Tailwind CSS, and Firebase.
 
-(Note: Replace the src above with a link to a screenshot of your game!)
-
 ✨ Core Features
 
 3-in-1 Game Modes:
