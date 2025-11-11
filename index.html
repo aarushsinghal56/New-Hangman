@@ -21,6 +21,7 @@
             align-items: flex-start;
             width: 100%;
             padding: 1rem; /* p-4 */
+            gap: 2rem; /* Add gap for desktop */
         }
 
         /* Main game container */
@@ -362,7 +363,8 @@
     <main class="main-layout">
 
         <!-- === NEW PLAYER INFO BOX (Desktop) === -->
-        <div id="player-info-box" class="hidden md:flex flex-col gap-3">
+        <!-- FIXED: Removed md:flex, only 'hidden' is needed -->
+        <div id="player-info-box" class="hidden flex-col gap-3">
             <!-- Round -->
             <div id="player-info-round">
                 <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -513,7 +515,7 @@
 
             <!-- === Waiting Screen === -->
             <div id="waiting-screen" class="hidden text-center space-y-6">
-                <h1 class="text-3xl font-extrabold text-indigo-700">Game Created!</h1>
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Game Created!</h1>
                 <p class="text-lg text-gray-700">Share this code with your friend:</p>
                 
                 <!-- Share Code -->
@@ -640,7 +642,7 @@
 
             <!-- === Leaderboard Screen === -->
             <div id="leaderboard-screen" class="hidden text-center space-y-6">
-                <h1 class="text-4xl font-extrabold text-indigo-700">Match Over!</h1>
+                <h1 class="text-4xl font-extrabold text-center text-indigo-700">Match Over!</h1>
                 <div id="winner-announcement" class="text-3xl font-bold text-green-600"></div>
                 <div class="bg-gray-100 p-6 rounded-lg shadow-inner space-y-4">
                     <h2 class="text-2xl font-bold text-gray-800">Final Score</h2>
@@ -672,7 +674,8 @@
         </div>
 
         <!-- === DESKTOP CHAT WINDOW === -->
-        <div id="chat-window-desktop" class="hidden md:flex flex-col overflow-hidden">
+        <!-- FIXED: Removed md:flex, only 'hidden' is needed -->
+        <div id="chat-window-desktop" class="hidden flex-col overflow-hidden">
             <!-- Chat Header -->
             <div class="flex-shrink-0 flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg">
                 <h3 class="font-bold text-lg">Game Chat</h3>
@@ -1017,11 +1020,11 @@
                 // Determine which error field to show
                 if (gameMode === 'local') {
                     errorP = localSetupError;
-                } else if (currentRoomData.gameState === 'setting_rounds') {
+                } else if (currentRoomData && currentRoomData.gameState === 'setting_rounds') {
                     errorP = roundError;
-                } else if (currentRoomData.gameState === 'waiting_for_word') {
+                } else if (currentRoomData && currentRoomData.gameState === 'waiting_for_word') {
                     errorP = setWordError;
-                } else if (currentRoomData.gameState === 'leaderboard') {
+                } else if (currentRoomData && currentRoomData.gameState === 'leaderboard') {
                     errorP = leaderboardError;
                 } else if (onSetup) {
                     errorP = setupError;
@@ -1054,12 +1057,18 @@
                 waitForWordScreen.classList.add('hidden');
                 gameScreen.classList.add('hidden');
                 leaderboardScreen.classList.add('hidden');
+                
+                // Hide all panels
                 chatToggleBtn.classList.add('hidden');
+                chatToggleBtn.style.display = 'none';
                 chatPopupMobile.classList.add('scale-0');
                 chatPopupMobile.classList.add('hidden');
-                chatWindowDesktop.classList.add('hidden'); // Hide desktop chat
+                chatPopupMobile.style.display = 'none';
+                chatWindowDesktop.classList.add('hidden');
+                chatWindowDesktop.style.display = 'none';
+                playerInfoBox.classList.add('hidden');
+                
                 timerDisplay.classList.add('hidden');
-                playerInfoBox.classList.add('hidden'); // Hide new player box
                 scoreDisplayMobile.classList.add('hidden'); // Hide mobile score display
                 hideAllErrors();
             }
@@ -1067,24 +1076,25 @@
             function showGameScreens() {
                 // Mobile
                 chatToggleBtn.classList.remove('hidden');
+                chatToggleBtn.style.display = 'flex'; // Use flex for icon
                 scoreDisplayMobile.classList.remove('hidden');
                 // Desktop
                 playerInfoBox.classList.remove('hidden');
                 chatWindowDesktop.classList.remove('hidden');
+                chatWindowDesktop.style.display = 'flex'; // Use flex for column
             }
 
             function disableOnlineButtons() {
                 createGameBtn.disabled = true;
                 joinGameBtn.disabled = true;
-                createGameBtn.classList.add('opacity-50', 'cursor-not-allowed');
-                joinGameBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                createGameBtn.classList.add('opacity-50','cursor-not-allowed');
+                joinGameBtn.classList.add('opacity-50','cursor-not-allowed');
             }
-
             function enableOnlineButtons() {
                 createGameBtn.disabled = false;
                 joinGameBtn.disabled = false;
-                createGameBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-                joinGameBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                createGameBtn.classList.remove('opacity-50','cursor-not-allowed');
+                joinGameBtn.classList.remove('opacity-50','cursor-not-allowed');
             }
 
             // --- Event Listeners ---
@@ -1187,22 +1197,18 @@
             function startLocalGame() {
                 const word = localSecretWordInput.value.trim().toUpperCase();
                 if (!validateWord(word)) return;
-
                 secretWord = word;
                 guessedLetters = [...vowels];
                 wrongGuesses = 0;
-                
                 localSecretWordInput.value = '';
-                
                 hideAllScreens();
                 gameScreen.classList.remove('hidden');
-                scoreDisplayMobile.classList.add('hidden'); // No score for local
-                timerDisplay.classList.add('hidden'); // No timer for local
-                hintArea.classList.add('hidden'); // No hint for local
-                playerInfoBox.classList.add('hidden'); // No player box for local
-
+                scoreDisplayMobile.classList.add('hidden');
+                timerDisplay.classList.add('hidden');
+                hintArea.classList.add('hidden');
+                playerInfoBox.classList.add('hidden');
                 renderWordDisplay();
-                renderKeyboard(true); // Always guesser in local mode
+                renderKeyboard(true);
                 updateHangmanDrawing();
                 wrongGuessesDisplay.textContent = '';
                 gameMessage.classList.add('hidden');
@@ -1212,44 +1218,28 @@
                 const letter = button.dataset.letter;
                 button.disabled = true;
                 guessedLetters.push(letter);
-
                 if (secretWord.includes(letter)) {
                     playSound('correct');
                     renderWordDisplay();
-                    button.classList.add('bg-green-500', 'text-white');
+                    button.classList.add('bg-green-500','text-white');
                 } else {
                     playSound('wrong');
                     wrongGuesses++;
                     updateWrongGuessesDisplay();
                     updateHangmanDrawing();
-                    button.classList.add('bg-red-500', 'text-white');
+                    button.classList.add('bg-red-500','text-white');
                 }
-
-                const allLettersGuessed = secretWord.split('').every(
-                    char => char === ' ' || guessedLetters.includes(char)
-                );
-
-                if (allLettersGuessed) {
-                    playSound('win');
-                    endGame(true);
-                } else if (wrongGuesses >= maxWrongGuesses) {
-                    playSound('lose');
-                    endGame(false);
-                }
+                const allLettersGuessed = secretWord.split('').every(char => char === ' ' || guessedLetters.includes(char));
+                if (allLettersGuessed) { playSound('win'); endGame(true); }
+                else if (wrongGuesses >= maxWrongGuesses) { playSound('lose'); endGame(false); }
             }
 
             // --- ONLINE GAME FUNCTIONS ---
-
             async function createGame() {
                 const playerName = createNameInput.value.trim();
-                if (playerName.length < 2) {
-                    showError("Please enter a name (at least 2 characters).");
-                    return;
-                }
+                if (playerName.length < 2) { showError("Please enter a name (at least 2 characters)."); return; }
                 disableOnlineButtons();
-                
                 const playerAvatar = avatarColors[createAvatarIndex];
-                
                 try {
                     const gameCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`);
                     const gameDoc = await addDoc(gameCollection, {
@@ -1258,7 +1248,7 @@
                         players: { [userId]: { name: playerName, score: 0, avatar: playerAvatar } },
                         currentWordSetter: userId,
                         currentGuesser: null,
-                        gameState: 'setting_rounds', // New state
+                        gameState: 'setting_rounds',
                         totalRounds: 0,
                         currentRound: 0,
                         secretWord: '',
@@ -1269,13 +1259,10 @@
                         roundEndTime: null,
                         hintUsed: false
                     });
-                    
                     currentGameId = gameDoc.id;
                     isGameCreator = true;
-                    
                     hideAllScreens();
                     roundSelectionScreen.classList.remove('hidden');
-                    
                     attachGameListener(currentGameId);
                 } catch (e) {
                     showError("Failed to create game. Please try again.");
@@ -1294,81 +1281,39 @@
                 } else {
                     numRounds = parseInt(selectedRounds, 10);
                 }
-
                 setRoundsBtn.disabled = true;
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                    await updateDoc(gameRef, {
-                        totalRounds: numRounds,
-                        gameState: 'waiting_for_guesser'
-                    });
-                    
+                    await updateDoc(gameRef, { totalRounds: numRounds, gameState: 'waiting_for_guesser' });
                     gameIdDisplay.value = currentGameId;
-
                     hideAllScreens();
                     waitingScreen.classList.remove('hidden');
-
                 } catch (e) {
                     showError("Failed to set rounds. Please try again.", false);
-                } finally {
-                    setRoundsBtn.disabled = false;
-                }
+                } finally { setRoundsBtn.disabled = false; }
             }
 
             async function joinGame() {
                 const gameId = joinGameIdInput.value.trim();
                 const playerName = joinNameInput.value.trim();
-                
-                if (playerName.length < 2) {
-                    showError("Please enter a name (at least 2 characters).");
-                    return;
-                }
-                if (gameId.length === 0) {
-                    showError('Please enter a Game ID to join.');
-                    return;
-                }
+                if (playerName.length < 2) { showError("Please enter a name (at least 2 characters)."); return; }
+                if (gameId.length === 0) { showError('Please enter a Game ID to join.'); return; }
                 disableOnlineButtons();
-
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, gameId);
                     const gameSnap = await getDoc(gameRef);
-
-                    if (!gameSnap.exists()) {
-                        showError('Game not found. Check the ID and try again.');
-                        enableOnlineButtons();
-                        return;
-                    }
-                    
+                    if (!gameSnap.exists()) { showError('Game not found. Check the ID and try again.'); enableOnlineButtons(); return; }
                     const gameData = gameSnap.data();
-
-                    if (gameData.guesserId && gameData.guesserId !== userId) {
-                        showError('This game is already full.');
-                        enableOnlineButtons();
-                        return;
-                    }
-
+                    if (gameData.guesserId && gameData.guesserId !== userId) { showError('This game is already full.'); enableOnlineButtons(); return; }
                     let players = gameData.players;
                     const playerAvatar = avatarColors[joinAvatarIndex];
-                    
-                    if (!players[userId]) {
-                         players[userId] = { name: playerName, score: 0, avatar: playerAvatar };
-                    }
-
-                    await updateDoc(gameRef, {
-                        guesserId: userId,
-                        currentGuesser: userId,
-                        players: players,
-                        gameState: 'waiting_for_word', // Trigger first round
-                        currentRound: 1 // Start round 1
-                    });
-
+                    if (!players[userId]) players[userId] = { name: playerName, score: 0, avatar: playerAvatar };
+                    await updateDoc(gameRef, { guesserId: userId, currentGuesser: userId, players: players, gameState: 'waiting_for_word', currentRound: 1 });
                     currentGameId = gameId;
                     isGameCreator = false;
                     joinGameIdInput.value = '';
                     joinNameInput.value = '';
-
                     attachGameListener(currentGameId);
-
                 } catch (e) {
                     showError("Failed to join game. Please try again.");
                     enableOnlineButtons();
@@ -1377,188 +1322,129 @@
 
             function attachGameListener(gameId) {
                 const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, gameId);
-                
                 if (gameUnsubscribe) gameUnsubscribe();
-
                 gameUnsubscribe = onSnapshot(gameRef, (docSnap) => {
-                    if (!docSnap.exists()) {
-                        showError("The game was canceled or deleted.");
-                        resetGame();
-                        return;
-                    }
-
+                    if (!docSnap.exists()) { showError("The game was canceled or deleted."); resetGame(); return; }
                     const oldData = currentRoomData;
                     currentRoomData = docSnap.data();
                     const data = currentRoomData;
-
-                    // Show emoji reaction
-                    if (data.lastEmoji && data.lastEmoji.timestamp && 
-                        (!oldData.lastEmoji || data.lastEmoji.timestamp !== oldData.lastEmoji.timestamp) &&
-                        data.lastEmoji.senderId !== userId) {
+                    if (data.lastEmoji && data.lastEmoji.timestamp && (!oldData.lastEmoji || data.lastEmoji.timestamp !== oldData.lastEmoji.timestamp) && data.lastEmoji.senderId !== userId) {
                         showEmojiReaction(data.lastEmoji.emoji);
                     }
-
                     secretWord = data.secretWord;
-                    guessedLetters = data.guessedLetters;
-                    wrongGuesses = data.wrongGuesses;
-
+                    guessedLetters = data.guessedLetters || [];
+                    wrongGuesses = data.wrongGuesses || 0;
                     const amIWordSetter = userId === data.currentWordSetter;
                     const amIGuesser = userId === data.currentGuesser;
 
-                    // Show chat icon once game starts
+                    // Show appropriate UI elements based on game state
                     if (data.gameState !== 'setting_rounds' && data.gameState !== 'waiting_for_guesser') {
-                        showGameScreens(); // Show chat, player box, etc.
+                        showGameScreens();
                     } else {
+                        // Explicitly hide side panels for setup screens
                         chatToggleBtn.classList.add('hidden');
+                        chatToggleBtn.style.display = 'none';
                         playerInfoBox.classList.add('hidden');
                         chatWindowDesktop.classList.add('hidden');
+                        chatWindowDesktop.style.display = 'none';
                     }
 
-                    // Render score for all active states
                     if (data.gameState === 'playing' || data.gameState === 'game_over' || data.gameState === 'waiting_for_word') {
                         renderScoreDisplay();
                     }
 
                     switch (data.gameState) {
                         case 'setting_rounds':
-                            if (amIWordSetter) {
-                                hideAllScreens();
-                                roundSelectionScreen.classList.remove('hidden');
-                            } else {
-                                // This state should only be visible to creator, but as a fallback:
-                                hideAllScreens();
-                                onlineSetupScreen.classList.remove('hidden');
-                                showError("Waiting for host to set up match...");
-                            }
+                            if (amIWordSetter) { hideAllScreens(); roundSelectionScreen.classList.remove('hidden'); }
+                            else { hideAllScreens(); onlineSetupScreen.classList.remove('hidden'); showError("Waiting for host to set up match..."); }
                             break;
-
                         case 'waiting_for_guesser':
                             hideAllScreens();
                             waitingScreen.classList.remove('hidden');
                             break;
-                        
                         case 'waiting_for_word':
                             hideAllScreens();
                             showGameScreens();
-                            timerDisplay.classList.add('hidden'); // Hide mobile timer
-                            playerInfoTimer.classList.add('hidden'); // Hide desktop timer
+                            timerDisplay.classList.add('hidden');
+                            playerInfoTimer.classList.add('hidden');
                             stopRoundTimer();
                             resetClockHands();
-                            if (amIWordSetter) {
-                                setWordScreen.classList.remove('hidden');
-                            } else {
-                                waitForWordScreen.classList.remove('hidden');
-                            }
+                            if (amIWordSetter) setWordScreen.classList.remove('hidden');
+                            else waitForWordScreen.classList.remove('hidden');
                             break;
-                        
                         case 'playing':
                             hideAllScreens();
                             gameScreen.classList.remove('hidden');
                             showGameScreens();
-                            timerDisplay.classList.remove('hidden'); // Show mobile timer
-                            playerInfoTimer.classList.remove('hidden'); // Show desktop timer
+                            timerDisplay.classList.remove('hidden');
+                            playerInfoTimer.classList.remove('hidden');
                             gameMessage.classList.add('hidden');
-                            
                             startRoundTimer(data.roundEndTime);
                             renderWordDisplay();
                             renderKeyboard(amIGuesser);
                             updateHangmanDrawing();
                             updateWrongGuessesDisplay();
                             break;
-                        
                         case 'game_over':
                             hideAllScreens();
                             gameScreen.classList.remove('hidden');
                             showGameScreens();
                             timerDisplay.classList.remove('hidden');
                             playerInfoTimer.classList.remove('hidden');
-                            
                             stopRoundTimer();
                             renderWordDisplay();
                             renderKeyboard(false);
                             updateHangmanDrawing();
                             updateWrongGuessesDisplay();
-                            
-                            // Check if match is over or just the round
-                            if (data.currentRound >= data.totalRounds) {
-                                endGame(data.lastWinnerId === userId, true); // Match is over
-                            } else {
-                                endGame(data.lastWinnerId === userId, false); // Round is over
-                            }
+                            if (data.currentRound >= data.totalRounds) endGame(data.lastWinnerId === userId, true);
+                            else endGame(data.lastWinnerId === userId, false);
                             break;
-                        
                         case 'leaderboard':
                             hideAllScreens();
                             leaderboardScreen.classList.remove('hidden');
-                            showGameScreens(); // Keep chat and player info visible
+                            showGameScreens();
                             renderLeaderboard();
                             break;
                     }
                 });
 
-                // --- Attach Chat Listener ---
+                // chat listener
                 const chatCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`, gameId, 'messages');
                 const q = query(chatCollection, orderBy("timestamp", "desc"));
-
                 if (chatUnsubscribe) chatUnsubscribe();
-                
                 chatUnsubscribe = onSnapshot(q, (querySnapshot) => {
-                    chatMessagesMobile.innerHTML = ''; // Clear mobile chat
-                    chatMessagesDesktop.innerHTML = ''; // Clear desktop chat
-                    querySnapshot.docs.reverse().forEach(doc => { // Show oldest first
-                        renderChatMessage(doc.data());
-                    });
+                    chatMessagesMobile.innerHTML = '';
+                    chatMessagesDesktop.innerHTML = '';
+                    querySnapshot.docs.reverse().forEach(doc => renderChatMessage(doc.data()));
                 });
             }
 
             async function setOnlineWord() {
                 const word = onlineSecretWordInput.value.trim().toUpperCase();
                 if (!validateWord(word, false)) return;
-
                 setOnlineWordBtn.disabled = true;
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                     const roundEndTime = Date.now() + ROUND_DURATION;
-                    
-                    await updateDoc(gameRef, {
-                        secretWord: word,
-                        guessedLetters: [...vowels],
-                        wrongGuesses: 0,
-                        gameState: 'playing',
-                        roundEndTime: roundEndTime, // Set the timer
-                        hintUsed: false // Reset hint for the new round
-                    });
+                    await updateDoc(gameRef, { secretWord: word, guessedLetters: [...vowels], wrongGuesses: 0, gameState: 'playing', roundEndTime: roundEndTime, hintUsed: false });
                     onlineSecretWordInput.value = '';
                 } catch (e) {
                     showError("Failed to set word. Please try again.", false);
-                } finally {
-                    setOnlineWordBtn.disabled = false;
-                }
+                } finally { setOnlineWordBtn.disabled = false; }
             }
 
             async function handleGuessOnline(button) {
                 const letter = button.dataset.letter;
                 if (guessedLetters.includes(letter)) return;
-
-                button.disabled = true; 
-                
+                button.disabled = true;
                 let newGuessedLetters = [...guessedLetters, letter];
                 let newWrongGuesses = wrongGuesses;
                 let newStatus = 'playing';
                 let newWinnerId = null;
-                let newScores = currentRoomData.players;
-
-                if (secretWord.includes(letter)) {
-                    playSound('correct');
-                } else {
-                    playSound('wrong');
-                    newWrongGuesses++;
-                }
-
-                const allLettersGuessed = secretWord.split('').every(
-                    char => char === ' ' || newGuessedLetters.includes(char)
-                );
-
+                let newScores = currentRoomData.players || {};
+                if (secretWord.includes(letter)) { playSound('correct'); }
+                else { playSound('wrong'); newWrongGuesses++; }
+                const allLettersGuessed = secretWord.split('').every(char => char === ' ' || newGuessedLetters.includes(char));
                 if (allLettersGuessed) {
                     newStatus = 'game_over';
                     newWinnerId = currentRoomData.currentGuesser;
@@ -1570,16 +1456,9 @@
                     newScores[newWinnerId].score++;
                     playSound('lose');
                 }
-                
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                    await updateDoc(gameRef, {
-                        guessedLetters: newGuessedLetters,
-                        wrongGuesses: newWrongGuesses,
-                        gameState: newStatus,
-                        lastWinnerId: newWinnerId,
-                        players: newScores
-                    });
+                    await updateDoc(gameRef, { guessedLetters: newGuessedLetters, wrongGuesses: newWrongGuesses, gameState: newStatus, lastWinnerId: newWinnerId, players: newScores });
                 } catch (e) {
                     showError("Error submitting guess. Please try again.", false);
                     button.disabled = false;
@@ -1587,77 +1466,46 @@
             }
 
             async function handleHintRequest() {
-                if (currentRoomData.hintUsed || currentRoomData.gameState !== 'playing') {
-                    return;
-                }
-                
-                // NEW: Disable hint for the first 60 seconds (150s - 90s = 60s)
+                if (currentRoomData.hintUsed || currentRoomData.gameState !== 'playing') return;
                 const remainingTime = currentRoomData.roundEndTime - Date.now();
-                const hintAvailableTime = ROUND_DURATION - 60000; // Hint available after 60s
-                
+                const hintAvailableTime = ROUND_DURATION - 60000;
                 if (remainingTime > hintAvailableTime) {
-                    hintBtn.disabled = true; // Keep it disabled
+                    hintBtn.disabled = true;
                     hintBtn.textContent = `💡 Hint in ${Math.ceil((remainingTime - hintAvailableTime) / 1000)}s`;
-                    
-                    // Set a timeout to re-enable the button
                     setTimeout(() => {
-                        // Check if still relevant
                         if (currentRoomData.gameState === 'playing' && !currentRoomData.hintUsed) {
                             hintBtn.disabled = false;
                             hintBtn.textContent = "💡 Get Hint (1 left)";
                         }
-                    }, remainingTime - hintAvailableTime + 100); // +100ms buffer
+                    }, (remainingTime - hintAvailableTime) + 100);
                     return;
                 }
-
-                // Find available hint letters (consonants not yet guessed)
-                const availableHints = secretWord.split('').filter(char => 
-                    consonants.includes(char) && !guessedLetters.includes(char)
-                );
-
+                const availableHints = secretWord.split('').filter(char => consonants.includes(char) && !guessedLetters.includes(char));
                 if (availableHints.length === 0) {
-                    // No hints left, just disable the button
                     hintBtn.disabled = true;
                     hintBtn.textContent = "No Hints Left";
                     return;
                 }
-
-                hintBtn.disabled = true; // Disable to prevent spam
-                
-                // Pick a random hint
+                hintBtn.disabled = true;
                 const hintLetter = availableHints[Math.floor(Math.random() * availableHints.length)];
-                
                 let newGuessedLetters = [...guessedLetters, hintLetter];
                 let newStatus = 'playing';
                 let newWinnerId = null;
-                let newScores = currentRoomData.players;
-
-                playSound('correct'); // Play correct sound for hint
-
-                // Check if this hint wins the game
-                const allLettersGuessed = secretWord.split('').every(
-                    char => char === ' ' || newGuessedLetters.includes(char)
-                );
-
+                let newScores = currentRoomData.players || {};
+                playSound('correct');
+                const allLettersGuessed = secretWord.split('').every(char => char === ' ' || newGuessedLetters.includes(char));
                 if (allLettersGuessed) {
                     newStatus = 'game_over';
                     newWinnerId = currentRoomData.currentGuesser;
                     newScores[newWinnerId].score++;
                     playSound('win');
                 }
-
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                    await updateDoc(gameRef, {
-                        guessedLetters: newGuessedLetters,
-                        gameState: newStatus,
-                        lastWinnerId: newWinnerId,
-                        players: newScores,
-                        hintUsed: true // Mark hint as used
-                    });
+                    await updateDoc(gameRef, { guessedLetters: newGuessedLetters, gameState: newStatus, lastWinnerId: newWinnerId, players: newScores, hintUsed: true });
                 } catch (e) {
                     showError("Error using hint. Please try again.", false);
-                    hintBtn.disabled = false; // Re-enable if it failed
+                    hintBtn.disabled = false;
                 }
             }
 
@@ -1675,33 +1523,23 @@
                         wrongGuesses: 0,
                         lastWinnerId: null,
                         roundEndTime: null,
-                        hintUsed: false // Reset hint for new round
+                        hintUsed: false
                     });
-                } catch (e) {
-                    showError("Error starting next round. Please try again.", false);
-                } finally {
-                    playAgainBtn.disabled = false;
-                }
+                } catch (e) { showError("Error starting next round. Please try again.", false); } finally { playAgainBtn.disabled = false; }
             }
 
-            // --- NEW: Function to start a new match ---
             async function startNewMatch() {
                 playAgainMatchBtn.disabled = true;
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                    
-                    // Reset scores for all players in the 'players' map
-                    const players = currentRoomData.players;
-                    for (const pid in players) {
-                        players[pid].score = 0;
-                    }
-
+                    const players = currentRoomData.players || {};
+                    for (const pid in players) { players[pid].score = 0; }
                     await updateDoc(gameRef, {
                         players: players,
-                        gameState: 'setting_rounds', // Go back to round selection
+                        gameState: 'setting_rounds',
                         currentRound: 0,
                         totalRounds: 0,
-                        currentWordSetter: currentRoomData.creatorId, // Reset host to creator
+                        currentWordSetter: currentRoomData.creatorId,
                         currentGuesser: currentRoomData.guesserId,
                         secretWord: '',
                         guessedLetters: [],
@@ -1710,275 +1548,150 @@
                         roundEndTime: null,
                         hintUsed: false
                     });
-                } catch (e) {
-                    showError("Error starting new match.", false);
-                    playAgainMatchBtn.disabled = false;
-                }
+                } catch (e) { showError("Error starting new match.", false); playAgainMatchBtn.disabled = false; }
             }
-            
-            // --- TIMER FUNCTIONS ---
-            
-            function startRoundTimer(endTime) {
-                stopRoundTimer(); // Clear any existing timer
 
+            // Timer functions
+            function startRoundTimer(endTime) {
+                stopRoundTimer();
                 function updateTimerDisplay(remainingMs) {
                     const minutes = Math.floor(remainingMs / 60000);
                     const seconds = Math.floor((remainingMs % 60000) / 1000);
-                    const timeString = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-                    timerText.textContent = timeString; // Mobile timer
-                    playerInfoTimerText.textContent = timeString; // Desktop timer
+                    const timeString = `${minutes.toString().padStart(2,'0')}:${seconds.toString().padStart(2,'0')}`;
+                    timerText.textContent = timeString;
+                    playerInfoTimerText.textContent = timeString;
                 }
-                
                 const timeNow = Date.now();
                 const remainingMs = endTime - timeNow;
-                updateTimerDisplay(remainingMs); // Update immediately
-
-                // Calculate initial rotation: (time passed / total time) * 360 degrees
+                updateTimerDisplay(remainingMs);
                 const timePassed = ROUND_DURATION - remainingMs;
                 const initialRotation = (timePassed / ROUND_DURATION) * 360;
-                
-                // Apply initial rotation
                 clockHandMobile.style.transform = `rotate(${initialRotation}deg)`;
                 clockHandDesktop.style.transform = `rotate(${initialRotation}deg)`;
-
-                // Start clock hand animation
                 clockHandMobile.style.animation = 'none';
                 clockHandDesktop.style.animation = 'none';
-                void clockHandMobile.offsetHeight; // Force reflow
+                void clockHandMobile.offsetHeight;
                 clockHandMobile.style.animation = `clock-tick ${ROUND_DURATION / 1000}s linear forwards`;
                 clockHandDesktop.style.animation = `clock-tick ${ROUND_DURATION / 1000}s linear forwards`;
-                
-                // Set animation delay to negative of time passed
                 clockHandMobile.style.animationDelay = `-${timePassed / 1000}s`;
                 clockHandDesktop.style.animationDelay = `-${timePassed / 1000}s`;
-                
                 clockHandMobile.style.animationPlayState = 'running';
                 clockHandDesktop.style.animationPlayState = 'running';
-
                 roundTimerInterval = setInterval(() => {
                     const remainingMs = endTime - Date.now();
-                    
                     if (remainingMs <= 0) {
                         stopRoundTimer();
                         updateTimerDisplay(0);
-                        // Only the guesser can trigger the time-up event
-                        if (userId === currentRoomData.currentGuesser && currentRoomData.gameState === 'playing') {
-                            handleTimeUp();
-                        }
+                        if (userId === currentRoomData.currentGuesser && currentRoomData.gameState === 'playing') handleTimeUp();
                         return;
                     }
                     updateTimerDisplay(remainingMs);
                 }, 1000);
             }
-
-            function stopRoundTimer() {
-                if (roundTimerInterval) {
-                    clearInterval(roundTimerInterval);
-                    roundTimerInterval = null;
-                }
-                // Pause animation
-                clockHandMobile.style.animationPlayState = 'paused';
-                clockHandDesktop.style.animationPlayState = 'paused';
-            }
-            
-            function resetClockHands() {
-                // Reset animation by removing it
-                clockHandMobile.style.animation = 'none';
-                clockHandDesktop.style.animation = 'none';
-                clockHandMobile.style.transform = 'rotate(0deg)';
-                clockHandDesktop.style.transform = 'rotate(0deg)';
-            }
-
+            function stopRoundTimer() { if (roundTimerInterval) { clearInterval(roundTimerInterval); roundTimerInterval = null; } clockHandMobile.style.animationPlayState = 'paused'; clockHandDesktop.style.animationPlayState = 'paused'; }
+            function resetClockHands() { clockHandMobile.style.animation = 'none'; clockHandDesktop.style.animation = 'none'; clockHandMobile.style.transform = 'rotate(0deg)'; clockHandDesktop.style.transform = 'rotate(0deg)'; }
             async function handleTimeUp() {
-                // Guesser ran out of time, setter wins
-                const newScores = currentRoomData.players;
+                const newScores = currentRoomData.players || {};
                 const winnerId = currentRoomData.currentWordSetter;
                 newScores[winnerId].score++;
-                
-                playSound('lose'); // Play lose sound
-
+                playSound('lose');
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                    await updateDoc(gameRef, { 
-                        gameState: 'game_over', 
-                        lastWinnerId: winnerId, 
-                        players: newScores 
-                    });
-                } catch (e) {
-                    showError("Error finalizing round. Please try again.", false);
-                }
+                    await updateDoc(gameRef, { gameState: 'game_over', lastWinnerId: winnerId, players: newScores });
+                } catch (e) { showError("Error finalizing round. Please try again.", false); }
             }
 
-            // --- COMMON GAME FUNCTIONS ---
-
+            // Common game functions
             function validateWord(word, onSetup = true) {
-                 if (word.length === 0) {
-                    showError('Please enter a word or phrase.', onSetup);
-                    return false;
-                }
+                if (word.length === 0) { showError('Please enter a word or phrase.', onSetup); return false; }
                 const hasConsonant = word.split('').every(char => char === ' ' || vowels.includes(char));
-                if (hasConsonant) {
-                     showError('Please enter a word with at least one consonant.', onSetup);
-                    return false;
-                }
+                if (hasConsonant) { showError('Please enter a word with at least one consonant.', onSetup); return false; }
                 return true;
             }
 
             function renderScoreDisplay() {
-                if (gameMode !== 'online' || !currentRoomData.players || !userId) {
-                    scoreDisplayMobile.classList.add('hidden');
-                    playerInfoBox.classList.add('hidden');
-                    return;
-                }
-                
+                if (gameMode !== 'online' || !currentRoomData.players || !userId) { scoreDisplayMobile.classList.add('hidden'); playerInfoBox.classList.add('hidden'); return; }
                 const myPlayer = currentRoomData.players[userId];
                 const opponentId = (userId === currentRoomData.creatorId) ? currentRoomData.guesserId : currentRoomData.creatorId;
                 const opponentPlayer = currentRoomData.players[opponentId];
-                
                 const myName = myPlayer?.name || "You";
                 const myScore = myPlayer?.score || 0;
                 const myAvatar = myPlayer?.avatar || avatarColors[0];
-                
                 const opponentName = opponentPlayer?.name || "Waiting...";
                 const opponentScore = opponentPlayer?.score || 0;
                 const opponentAvatar = opponentPlayer?.avatar || avatarColors[1];
-                
                 const amIWordSetter = userId === currentRoomData.currentWordSetter;
-
-                // --- Update Mobile Display ---
                 scoreText.textContent = `${myName}: ${myScore}  -  ${opponentName}: ${opponentScore}`;
                 roundText.textContent = `Round ${currentRoomData.currentRound} / ${currentRoomData.totalRounds}`;
-                
-                // --- Update Desktop Player Info Box ---
-                playerInfoRound.innerHTML = `
-                    <svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                    <span>Round ${currentRoomData.currentRound} / ${currentRoomData.totalRounds}</span>
-                `;
-                
-                // My Info
+                playerInfoRound.innerHTML = `<svg class="w-6 h-6 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg><span>Round ${currentRoomData.currentRound} / ${currentRoomData.totalRounds}</span>`;
                 playerInfoMeAvatar.style.backgroundColor = myAvatar;
                 playerInfoMeName.textContent = myName;
                 playerInfoMeScore.textContent = myScore;
-
-                // Friend Info
                 playerInfoFriendAvatar.style.backgroundColor = opponentAvatar;
                 playerInfoFriendName.textContent = opponentName;
                 playerInfoFriendScore.textContent = opponentScore;
-
-                // Show crown
                 playerInfoMeCrown.classList.toggle('hidden', !amIWordSetter);
                 playerInfoFriendCrown.classList.toggle('hidden', amIWordSetter);
-                
-                // Highlight active player
                 playerInfoMe.classList.toggle('active-player', amIWordSetter);
                 playerInfoFriend.classList.toggle('active-player', !amIWordSetter);
             }
-            
+
             function renderWordDisplay() {
                 wordDisplay.innerHTML = '';
-                
                 secretWord.split('').forEach(char => {
                     const letterSpan = document.createElement('span');
-                    letterSpan.classList.add('font-extrabold', 'text-2xl', 'md:text-4xl', 'uppercase');
-
-                    if (char === ' ') {
-                        letterSpan.classList.add('w-4', 'md:w-6');
-                        letterSpan.innerHTML = '&nbsp;';
-                    } else if (guessedLetters.includes(char)) {
-                        letterSpan.textContent = char;
-                        letterSpan.classList.add('text-indigo-900');
-                    } else {
-                        letterSpan.textContent = '_';
-                        letterSpan.classList.add('text-indigo-300');
-                    }
+                    letterSpan.classList.add('font-extrabold','text-2xl','md:text-4xl','uppercase');
+                    if (char === ' ') { letterSpan.classList.add('w-4','md:w-6'); letterSpan.innerHTML = '&nbsp;'; }
+                    else if (guessedLetters.includes(char)) { letterSpan.textContent = char; letterSpan.classList.add('text-indigo-900'); }
+                    else { letterSpan.textContent = '_'; letterSpan.classList.add('text-indigo-300'); }
                     wordDisplay.appendChild(letterSpan);
                 });
             }
-            
-            function renderKeyboard(canGuess) {
-                keyboardArea.innerHTML = ''; // Clear previous content
 
+            function renderKeyboard(canGuess) {
+                keyboardArea.innerHTML = '';
                 if (canGuess) {
-                    // Show hint button
                     hintArea.classList.remove('hidden');
                     keyboardArea.appendChild(hintArea);
-                    
-                    const remainingTime = currentRoomData.roundEndTime - Date.now();
-                    const hintAvailableTime = ROUND_DURATION - 60000; // Hint available after 60s
-                    
-                    if (currentRoomData.hintUsed) {
-                        hintBtn.disabled = true;
-                        hintBtn.textContent = "💡 Hint Used";
-                    } else if (remainingTime <= hintAvailableTime) {
-                        hintBtn.disabled = false;
-                        hintBtn.textContent = "💡 Get Hint (1 left)";
-                    } else {
-                        hintBtn.disabled = true;
-                        const secondsLeft = Math.ceil((remainingTime - hintAvailableTime) / 1000);
-                        hintBtn.textContent = `💡 Hint in ${secondsLeft}s`;
-                        
-                        // Set a timeout to re-enable the button
-                        setTimeout(() => {
-                            // Check if still relevant
-                            if (currentRoomData.gameState === 'playing' && !currentRoomData.hintUsed) {
-                                hintBtn.disabled = false;
-                                hintBtn.textContent = "💡 Get Hint (1 left)";
-                            }
-                        }, (remainingTime - hintAvailableTime) + 100); // +100ms buffer
-                    }
-
-                    // Show keyboard
+                    const remainingTime = (currentRoomData.roundEndTime || 0) - Date.now();
+                    const hintAvailableTime = ROUND_DURATION - 60000;
+                    if (currentRoomData.hintUsed) { hintBtn.disabled = true; hintBtn.textContent = "💡 Hint Used"; }
+                    else if (remainingTime <= hintAvailableTime) { hintBtn.disabled = false; hintBtn.textContent = "💡 Get Hint (1 left)"; }
+                    else { hintBtn.disabled = true; const secondsLeft = Math.ceil((remainingTime - hintAvailableTime) / 1000); hintBtn.textContent = `💡 Hint in ${secondsLeft}s`; setTimeout(() => { if (currentRoomData.gameState === 'playing' && !currentRoomData.hintUsed) { hintBtn.disabled = false; hintBtn.textContent = "💡 Get Hint (1 left)"; } }, (remainingTime - hintAvailableTime) + 100); }
                     keyboardArea.appendChild(keyboardButtons);
                     spectatorView.classList.add('hidden');
-                    keyboardButtons.innerHTML = ''; // Clear old buttons
+                    keyboardButtons.innerHTML = '';
                     consonants.forEach(letter => {
                         const button = document.createElement('button');
                         button.textContent = letter;
-                        button.classList.add(
-                            'keyboard-button', 'w-12', 'h-12', 'md:w-14', 'md:h-14', 
-                            'bg-indigo-500', 'text-white', 
-                            'font-extrabold', 'text-xl', 'rounded-lg', 'shadow-md'
-                        );
+                        button.classList.add('keyboard-button','w-12','h-12','md:w-14','md:h-14','bg-indigo-500','text-white','font-extrabold','text-xl','rounded-lg','shadow-md');
                         button.dataset.letter = letter;
-
                         if (guessedLetters.includes(letter)) {
                             button.disabled = true;
-                            if (secretWord.includes(letter)) {
-                                button.classList.add('bg-green-500', 'text-white');
-                            } else {
-                                button.classList.add('bg-red-500', 'text-white');
-                            }
+                            if (secretWord.includes(letter)) button.classList.add('bg-green-500','text-white');
+                            else button.classList.add('bg-red-500','text-white');
                         }
-
                         button.addEventListener('click', () => {
-                            if (gameMode === 'local') {
-                                handleGuessLocal(button);
-                            } else if (gameMode === 'online' && canGuess) {
-                                handleGuessOnline(button);
-                            }
+                            if (gameMode === 'local') handleGuessLocal(button);
+                            else if (gameMode === 'online' && canGuess) handleGuessOnline(button);
                         });
                         keyboardButtons.appendChild(button);
                     });
                 } else {
-                    // Show spectator view
                     hintArea.classList.add('hidden');
                     keyboardArea.appendChild(spectatorView);
                     spectatorView.classList.remove('hidden');
                 }
             }
-            
+
             function updateWrongGuessesDisplay() {
-                const wrongLetters = guessedLetters.filter(
-                    letter => !secretWord.includes(letter) && !vowels.includes(letter)
-                );
+                const wrongLetters = guessedLetters.filter(letter => !secretWord.includes(letter) && !vowels.includes(letter));
                 wrongGuessesDisplay.textContent = wrongLetters.join(', ');
             }
 
             function updateHangmanDrawing() {
                 hangmanParts.forEach(partId => {
-                    if(document.getElementById(partId)) {
-                       document.getElementById(partId).style.visibility = 'hidden';
-                    }
+                    if (document.getElementById(partId)) document.getElementById(partId).style.visibility = 'hidden';
                 });
                 for (let i = 0; i < wrongGuesses; i++) {
                     if (hangmanParts[i] && document.getElementById(hangmanParts[i])) {
@@ -1986,51 +1699,35 @@
                     }
                 }
             }
-            
+
             function endGame(isWin, isMatchOver = false) {
-                stopRoundTimer(); // Stop timer as soon as game ends
-                
+                stopRoundTimer();
                 if (isWin) {
                     messageText.textContent = 'YOU WIN!';
-                    messageText.classList.add('text-green-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-500', 'animate-pulse');
+                    messageText.classList.add('text-green-600','bg-gradient-to-r','from-cyan-500','to-blue-500','animate-pulse');
                     messageText.style.backgroundImage = 'linear-gradient(to right, var(--tw-gradient-stops))';
                     fireConfetti();
-                    // Play win sound only if it wasn't already played by guess
                     if (currentRoomData.gameState !== 'game_over') playSound('win');
                 } else {
                     messageText.textContent = 'GAME OVER!';
                     messageText.classList.add('text-red-600');
                     guessedLetters = [...secretWord.split('')];
                     renderWordDisplay();
-                    // Play lose sound only if it wasn't already played by guess
                     if (currentRoomData.gameState !== 'game_over') playSound('lose');
                 }
-                
-                if (gameMode === 'local') {
-                    playAgainBtn.textContent = 'Play Again';
-                } else if (isMatchOver) {
-                    playAgainBtn.textContent = 'View Results';
-                } else {
-                    playAgainBtn.textContent = 'Next Round';
-                }
+                if (gameMode === 'local') playAgainBtn.textContent = 'Play Again';
+                else if (isMatchOver) playAgainBtn.textContent = 'View Results';
+                else playAgainBtn.textContent = 'Next Round';
                 gameMessage.classList.remove('hidden');
             }
 
             async function handlePlayAgain() {
-                if (gameMode === 'local') {
-                    resetGame();
-                } else {
-                    // Check if match is over
+                if (gameMode === 'local') resetGame();
+                else {
                     if (currentRoomData.currentRound >= currentRoomData.totalRounds) {
-                        // Go to leaderboard
-                        try {
-                            const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                            await updateDoc(gameRef, { gameState: 'leaderboard' });
-                        } catch (e) {
-                            showError("Error showing leaderboard.", false);
-                        }
+                        try { const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId); await updateDoc(gameRef, { gameState: 'leaderboard' }); }
+                        catch (e) { showError("Error showing leaderboard.", false); }
                     } else {
-                        // Start next round
                         startNextRound();
                     }
                 }
@@ -2040,110 +1737,59 @@
                 const myPlayer = currentRoomData.players[userId];
                 const opponentId = (userId === currentRoomData.creatorId) ? currentRoomData.guesserId : currentRoomData.creatorId;
                 const opponentPlayer = currentRoomData.players[opponentId];
-                
                 const myName = myPlayer?.name || "You";
                 const myScore = myPlayer?.score || 0;
                 const myAvatar = myPlayer?.avatar || avatarColors[0];
-                
                 const opponentName = opponentPlayer?.name || "Friend";
                 const opponentScore = opponentPlayer?.score || 0;
                 const opponentAvatar = opponentPlayer?.avatar || avatarColors[1];
-                
-                // Populate based on score
                 const player1 = (myScore >= opponentScore) ? myPlayer : opponentPlayer;
                 const player2 = (myScore < opponentScore) ? myPlayer : opponentPlayer;
-
                 finalAvatar1.style.backgroundColor = player1?.avatar || avatarColors[0];
                 finalName1.textContent = player1?.name || "Player 1";
                 finalScoreVal1.textContent = player1?.score || 0;
-                
                 finalAvatar2.style.backgroundColor = player2?.avatar || avatarColors[1];
                 finalName2.textContent = player2?.name || "Player 2";
                 finalScoreVal2.textContent = player2?.score || 0;
-
-                if (myScore > opponentScore) {
-                    winnerAnnouncement.textContent = `Congratulations, ${myName}!`;
-                    winnerAnnouncement.classList.remove('text-red-600', 'text-gray-600');
-                    winnerAnnouncement.classList.add('text-green-600');
-                    fireConfetti();
-                } else if (opponentScore > myScore) {
-                    winnerAnnouncement.textContent = `${opponentName} Wins!`;
-                    winnerAnnouncement.classList.remove('text-green-600', 'text-gray-600');
-                    winnerAnnouncement.classList.add('text-red-600');
-                } else {
-                    winnerAnnouncement.textContent = "It's a Tie!";
-                    winnerAnnouncement.classList.remove('text-green-600', 'text-red-600');
-                    winnerAnnouncement.classList.add('text-gray-600');
-                }
-                
-                // NEW: Show/hide rematch buttons
-                if (isGameCreator) {
-                    playAgainMatchBtn.classList.remove('hidden');
-                    waitingForHostRematch.classList.add('hidden');
-                } else {
-                    playAgainMatchBtn.classList.add('hidden');
-                    waitingForHostRematch.classList.remove('hidden');
-                }
+                if (myScore > opponentScore) { winnerAnnouncement.textContent = `Congratulations, ${myName}!`; winnerAnnouncement.classList.remove('text-red-600','text-gray-600'); winnerAnnouncement.classList.add('text-green-600'); fireConfetti(); }
+                else if (opponentScore > myScore) { winnerAnnouncement.textContent = `${opponentName} Wins!`; winnerAnnouncement.classList.remove('text-green-600','text-gray-600'); winnerAnnouncement.classList.add('text-red-600'); }
+                else { winnerAnnouncement.textContent = "It's a Tie!"; winnerAnnouncement.classList.remove('text-green-600','text-red-600'); winnerAnnouncement.classList.add('text-gray-600'); }
+                if (isGameCreator) { playAgainMatchBtn.classList.remove('hidden'); waitingForHostRematch.classList.add('hidden'); }
+                else { playAgainMatchBtn.classList.add('hidden'); waitingForHostRematch.classList.remove('hidden'); }
             }
 
             function resetGame() {
                 if (gameMode === 'online') {
                     if (gameUnsubscribe) gameUnsubscribe();
                     if (chatUnsubscribe) chatUnsubscribe();
-                    gameUnsubscribe = null;
-                    chatUnsubscribe = null;
+                    gameUnsubscribe = null; chatUnsubscribe = null;
                 }
                 stopRoundTimer();
                 resetClockHands();
-
-                secretWord = '';
-                guessedLetters = [];
-                wrongGuesses = 0;
-                currentGameId = null;
-                isGameCreator = false;
-                currentRoomData = {};
-                gameMode = 'local';
-                selectedRounds = 3;
-
+                secretWord = ''; guessedLetters = []; wrongGuesses = 0; currentGameId = null; isGameCreator = false; currentRoomData = {}; gameMode = 'local'; selectedRounds = 3;
                 hideAllScreens();
                 modeSelectionScreen.classList.remove('hidden');
-                
                 gameMessage.classList.add('hidden');
                 wrongGuessesDisplay.textContent = '';
                 updateHangmanDrawing();
-                
-                // Clear name fields
-                createNameInput.value = '';
-                joinNameInput.value = '';
-                
-                if (isFirebaseInitialized) {
-                    enableOnlineButtons();
-                }
-                
-                messageText.classList.remove('text-green-600', 'text-red-600', 'bg-gradient-to-r', 'from-cyan-500', 'to-blue-5g00', 'animate-pulse');
+                createNameInput.value = ''; joinNameInput.value = '';
+                if (isFirebaseInitialized) enableOnlineButtons();
+                messageText.classList.remove('text-green-600','text-red-600','bg-gradient-to-r','from-cyan-500','to-blue-5g00','animate-pulse');
                 messageText.style.backgroundImage = '';
             }
 
             async function cancelGame() {
-                if (!currentGameId) {
-                    resetGame();
-                    return;
-                }
+                if (!currentGameId) { resetGame(); return; }
                 cancelGameBtn.disabled = true;
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                     await deleteDoc(gameRef);
-                } catch (e) {
-                    // Ignore error, just reset
-                } finally {
-                    resetGame();
-                    cancelGameBtn.disabled = false;
-                }
+                } catch (e) { }
+                finally { resetGame(); cancelGameBtn.disabled = false; }
             }
 
             function copyToClipboard(text, button, defaultText = 'Copy') {
                 try {
-                    // Use execCommand for broader compatibility in iFrames
                     const ta = document.createElement('textarea');
                     ta.value = text;
                     ta.style.position = 'fixed';
@@ -2152,14 +1798,9 @@
                     ta.select();
                     document.execCommand('copy');
                     document.body.removeChild(ta);
-                    
                     button.textContent = 'Copied!';
-                } catch (err) {
-                    button.textContent = 'Copy Failed';
-                }
-                setTimeout(() => {
-                    button.textContent = defaultText;
-                }, 2000);
+                } catch (err) { button.textContent = 'Copy Failed'; }
+                setTimeout(() => { button.textContent = defaultText; }, 2000);
             }
 
             function fireConfetti() {
@@ -2167,46 +1808,41 @@
                 const duration = 3 * 1000;
                 const animationEnd = Date.now() + duration;
                 const defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-                function randomInRange(min, max) { return Math.random() * (max - min) + min; }
+                function randomInRange(min,max) { return Math.random() * (max - min) + min; }
                 const interval = setInterval(function() {
                     const timeLeft = animationEnd - Date.now();
                     if (timeLeft <= 0) return clearInterval(interval);
                     const particleCount = 50 * (timeLeft / duration);
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1,0.3), y: Math.random() - 0.2 } }));
+                    confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7,0.9), y: Math.random() - 0.2 } }));
                 }, 250);
             }
 
-            // --- CHAT FUNCTIONS ---
+            // Chat functions
             function toggleChatPopup() {
+                if (!chatPopupMobile) return;
                 chatPopupMobile.classList.toggle('hidden');
                 setTimeout(() => {
                     chatPopupMobile.classList.toggle('scale-0');
                     chatPopupMobile.classList.toggle('scale-100');
-                }, 10); // Short delay to allow 'hidden' to apply first
+                    if (!chatPopupMobile.classList.contains('hidden')) chatPopupMobile.style.display = 'flex';
+                    else chatPopupMobile.style.display = 'none';
+                }, 10);
             }
 
             async function handleChatSubmit(e) {
                 e.preventDefault();
-                
-                // Get text from either mobile or desktop input
                 const isMobile = e.target.id === 'chat-form-mobile';
                 const input = isMobile ? chatInputMobile : chatInputDesktop;
                 const messageText = input.value.trim();
-                
                 if (messageText.length === 0) return;
-
-                // Anti-cheat check
                 if (secretWord && messageText.toUpperCase().includes(secretWord) && secretWord.length > 2) {
-                    input.value = '';
-                    showChatError("You can't send the secret word!");
-                    return;
+                    input.value = ''; showChatError("You can't send the secret word!"); return;
                 }
-
                 await sendChatMessage(messageText);
                 input.value = '';
             }
-            
+
             async function handleEmojiClick(e) {
                 if (e.target.classList.contains('emoji-reaction-btn-mobile') || e.target.classList.contains('emoji-reaction-btn-desktop')) {
                     const emoji = e.target.dataset.emoji;
@@ -2216,96 +1852,62 @@
 
             async function sendChatMessage(text, isEmoji = false) {
                 if (!currentGameId || !userId) return;
-
                 try {
                     const chatCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId, 'messages');
-                    await addDoc(chatCollection, {
-                        text: text,
-                        senderId: userId,
-                        isEmoji: isEmoji,
-                        timestamp: serverTimestamp()
-                    });
-
+                    await addDoc(chatCollection, { text: text, senderId: userId, isEmoji: isEmoji, timestamp: serverTimestamp() });
                     if (isEmoji) {
                         const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                        await updateDoc(gameRef, {
-                            lastEmoji: {
-                                emoji: text,
-                                senderId: userId,
-                                timestamp: Date.now() // Use client time for uniqueness
-                            }
-                        });
+                        await updateDoc(gameRef, { lastEmoji: { emoji: text, senderId: userId, timestamp: Date.now() } });
                     }
-
-                } catch (e) {
-                    console.error("Error sending message: ", e);
-                    showChatError("Error sending message.");
-                }
+                } catch (e) { console.error("Error sending message: ", e); showChatError("Error sending message."); }
             }
 
-        
             function renderChatMessage(data) {
                 if (!data) return;
-                
-                // Render to both mobile and desktop chats
                 [chatMessagesMobile, chatMessagesDesktop].forEach(chatBox => {
-                    if (!chatBox) return; // Add check
+                    if (!chatBox) return;
                     const isMe = data.senderId === userId;
-                    const playerData = currentRoomData.players[data.senderId];
+                    const playerData = currentRoomData.players && currentRoomData.players[data.senderId];
                     const playerName = playerData?.name || "Player";
-                    const playerColor = playerData?.avatar || "#6B7280"; // default gray
-                    
+                    const playerColor = playerData?.avatar || "#6B7280";
                     const msgDiv = document.createElement('div');
-                    
                     if (data.isEmoji) {
-                        // Emoji message
                         msgDiv.classList.add('text-5xl', isMe ? 'text-right' : 'text-left');
                         msgDiv.textContent = data.text;
                     } else {
-                        // Text message
-                        msgDiv.classList.add('w-full', 'flex', 'flex-col', isMe ? 'items-end' : 'items-start');
-                        
+                        msgDiv.classList.add('w-full','flex','flex-col', isMe ? 'items-end' : 'items-start');
                         const nameSpan = document.createElement('span');
-                        nameSpan.classList.add('text-xs', 'font-semibold', 'mb-1', 'px-2');
+                        nameSpan.classList.add('text-xs','font-semibold','mb-1','px-2');
                         nameSpan.textContent = isMe ? "You" : playerName;
-                        nameSpan.style.color = isMe ? '#4F46E5' : playerColor; // My color vs Opponent color
-
+                        nameSpan.style.color = isMe ? '#4F46E5' : playerColor;
                         const bubble = document.createElement('div');
-                        bubble.classList.add('p-3', 'rounded-2xl', 'max-w-[75%]', 'shadow', 'break-words');
+                        bubble.classList.add('p-3','rounded-2xl','max-w-[75%]','shadow','break-words');
                         bubble.textContent = data.text;
-                        
-                        if (isMe) {
-                            bubble.classList.add('bg-indigo-500', 'text-white', 'rounded-br-none');
-                        } else {
-                            bubble.classList.add('bg-gray-200', 'text-gray-800', 'rounded-bl-none');
-                        }
+                        if (isMe) bubble.classList.add('bg-indigo-500','text-white','rounded-br-none');
+                        else bubble.classList.add('bg-gray-200','text-gray-800','rounded-bl-none');
                         msgDiv.appendChild(nameSpan);
                         msgDiv.appendChild(bubble);
                     }
-                    
                     chatBox.appendChild(msgDiv);
-                    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll
+                    chatBox.scrollTop = chatBox.scrollHeight;
                 });
             }
-            
+
             function showChatError(message) {
                 [chatMessagesMobile, chatMessagesDesktop].forEach(chatBox => {
-                    if (!chatBox) return; // Add check
+                    if (!chatBox) return;
                     const errorDiv = document.createElement('div');
-                    errorDiv.classList.add('w-full', 'text-center', 'text-red-500', 'text-sm', 'italic');
+                    errorDiv.classList.add('w-full','text-center','text-red-500','text-sm','italic');
                     errorDiv.textContent = message;
                     chatBox.appendChild(errorDiv);
                     chatBox.scrollTop = chatBox.scrollHeight;
                 });
             }
-            
+
             function showEmojiReaction(emoji) {
                 emojiDisplayArea.textContent = emoji;
                 emojiDisplayArea.classList.add('pop-and-fade');
-                setTimeout(() => {
-                    emojiDisplayArea.classList.remove('pop-and-fade');
-                    emojiDisplayArea.textContent = '';
-                }, 2000);
+                setTimeout(() => { emojiDisplayArea.classList.remove('pop-and-fade'); emojiDisplayArea.textContent = ''; }, 2000);
             }
 
             // --- Initial Load ---
@@ -2316,6 +1918,7 @@
             // MANUALLY HIDE DESKTOP PANELS ON LOAD
             playerInfoBox.classList.add('hidden');
             chatWindowDesktop.classList.add('hidden');
+            chatWindowDesktop.style.display = 'none'; // Force hide
 
         }); // End of DOMContentLoaded
     </script>
