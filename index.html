@@ -172,20 +172,21 @@
         }
 
         /* Round Selection Buttons */
-        .round-btn.selected {
+        .round-btn.selected, .bot-btn.selected {
             background-color: #4f46e5; /* indigo-600 */
             color: white;
             border-color: #4f46e5;
         }
 
         /* Hint Button */
-        #hint-btn {
+        .hint-btn {
             transition: all 0.2s ease;
         }
-        #hint-btn:disabled {
+        .hint-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-            background-color: #d1d5db; /* gray-300 */
+            background-color: #d1d5db !important; /* gray-300 */
+            color: #6b7280 !important; /* gray-500 */
         }
 
         /* Avatar Customizer */
@@ -355,6 +356,40 @@
             font-weight: bold;
             color: #ef4444; /* red-500 */
         }
+
+        /* --- HOW TO PLAY MODAL --- */
+        #how-to-play-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        #how-to-play-modal.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .flashcard-container {
+            width: 90%;
+            max-width: 400px;
+            background: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+        #how-to-play-modal.visible .flashcard-container {
+            transform: scale(1);
+        }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 text-gray-800">
@@ -363,7 +398,6 @@
     <main class="main-layout">
 
         <!-- === NEW PLAYER INFO BOX (Desktop) === -->
-        <!-- FIXED: Removed md:flex, only 'hidden' is needed -->
         <div id="player-info-box" class="hidden flex-col gap-3">
             <!-- Round -->
             <div id="player-info-round">
@@ -411,21 +445,39 @@
         <!-- This is the main container for the game -->
         <div class="game-container" id="game-container">
             
+            <!-- === NEW: How to Play Button === -->
+            <button id="how-to-play-btn" class="absolute top-4 right-4 text-gray-400 hover:text-indigo-600 transition">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.79 4 4 0 1.962-1.288 3.628-3 3.954V15m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            </button>
+
             <!-- === Mode Selection Screen === -->
             <div id="mode-selection-screen" class="space-y-6">
-                <h1 class="text-4xl font-extrabold text-center text-indigo-700">Hangman Challenge</h1>
+                <h1 class="text-4xl font-extrabold text-center text-indigo-700 pt-6">Hangman Challenge</h1>
                 <p class="text-center text-lg text-gray-700">How do you want to play?</p>
                 <button id="play-local-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
-                    Play Locally (Hot-Seat)
+                    Play Locally
                 </button>
                 <button id="play-online-btn" class="w-full bg-green-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-green-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
                     Play Online with Friends
                 </button>
             </div>
 
+            <!-- === NEW: Local Mode Selection === -->
+            <div id="local-mode-selection-screen" class="hidden space-y-6">
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Local Play</h1>
+                <p class="text-center text-lg text-gray-700">Choose your local mode:</p>
+                <button id="play-hotseat-btn" class="w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Play Hot-Seat (2 Players)
+                </button>
+                <button id="play-bot-btn" class="w-full bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-cyan-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Play vs. Bot (1 Player)
+                </button>
+                <button id="back-to-main-menu-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Main Menu</button>
+            </div>
+
             <!-- === Local Setup Screen === -->
             <div id="local-setup-screen" class="hidden space-y-8">
-                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Local Game</h1>
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Hot-Seat Game</h1>
                 <p class="text-center text-gray-700 text-lg">Enter a secret word or phrase. Vowels will be revealed automatically!</p>
                 <div>
                     <label for="local-secret-word-input" class="block text-sm font-medium text-gray-700 mb-2">Secret Word</label>
@@ -435,7 +487,39 @@
                     Start Local Game
                 </button>
                 <p id="local-setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
-                <button id="back-to-modes-local-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
+                <button id="back-to-local-mode-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Local Modes</button>
+            </div>
+
+            <!-- === NEW: Bot Setup Screen === -->
+            <div id="bot-setup-screen" class="hidden space-y-6">
+                <h1 class="text-3xl font-extrabold text-center text-indigo-700">Play vs. Bot</h1>
+                
+                <!-- Category Selection -->
+                <div>
+                    <h2 class="text-lg font-semibold text-center text-gray-800 mb-3">Select a Category</h2>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button class="bot-btn bot-category-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl hover:bg-gray-100 transition" data-category="movies">Movies</button>
+                        <button class="bot-btn bot-category-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl hover:bg-gray-100 transition" data-category="animals">Animals</button>
+                        <button class="bot-btn bot-category-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl hover:bg-gray-100 transition" data-category="cars">Car Brands</button>
+                        <button class="bot-btn bot-category-btn w-full text-lg border-2 border-gray-300 text-gray-800 font-bold py-3 px-4 rounded-xl hover:bg-gray-100 transition" data-category="food">Food</button>
+                    </div>
+                </div>
+
+                <!-- Difficulty Selection -->
+                <div>
+                    <h2 class="text-lg font-semibold text-center text-gray-800 mb-3">Select Difficulty</h2>
+                    <div class="grid grid-cols-3 gap-3">
+                        <button class="bot-btn bot-difficulty-btn w-full text-lg border-2 border-green-300 text-green-800 font-bold py-3 px-4 rounded-xl hover:bg-green-50 transition" data-difficulty="easy">Easy</button>
+                        <button class="bot-btn bot-difficulty-btn w-full text-lg border-2 border-yellow-300 text-yellow-800 font-bold py-3 px-4 rounded-xl hover:bg-yellow-50 transition" data-difficulty="medium">Medium</button>
+                        <button class="bot-btn bot-difficulty-btn w-full text-lg border-2 border-red-300 text-red-800 font-bold py-3 px-4 rounded-xl hover:bg-red-50 transition" data-difficulty="hard">Hard</button>
+                    </div>
+                </div>
+
+                <button id="start-bot-game-btn" class="w-full bg-cyan-600 text-white font-bold py-4 px-6 rounded-xl hover:bg-cyan-700 transition duration-300 shadow-lg text-lg transform hover:scale-[1.02]">
+                    Start Bot Game
+                </button>
+                <p id="bot-setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
+                <button id="back-to-local-mode-btn-2" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Local Modes</button>
             </div>
 
             <!-- === Online Setup Screen === -->
@@ -484,7 +568,7 @@
                 
                 <p id="setup-error" class="text-red-600 text-center text-sm hidden mt-4"></p>
                 <p id="user-id-display" class="text-center text-gray-500 text-xs break-all"></p>
-                <button id="back-to-modes-online-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Menu</button>
+                <button id="back-to-modes-online-btn" class="w-full text-center text-gray-600 hover:underline mt-4">Back to Main Menu</button>
             </div>
 
             <!-- === Round Selection Screen === -->
@@ -581,6 +665,11 @@
                             <p id="timer-text" class="text-lg player-info-timer-text text-gray-700">02:30</p>
                         </div>
                     </div>
+                    
+                    <!-- NEW: Category Display -->
+                    <div id="category-display" class="text-center text-lg text-gray-600 font-semibold mb-2 hidden">
+                        Category: Movies
+                    </div>
 
                     <h1 class="text-4xl font-extrabold text-center text-indigo-700 mb-4">Guess the Word!</h1>
                     
@@ -612,11 +701,19 @@
 
                     <!-- Keyboard or Spectator View -->
                     <div id="keyboard-area" class="min-h-[160px]">
-                        <!-- Hint Button -->
+                        <!-- NEW: Hint Store -->
                         <div id="hint-area" class="text-center mb-4 hidden">
-                            <button id="hint-btn" class="bg-yellow-400 text-yellow-900 font-bold py-2 px-5 rounded-full shadow-lg hover:bg-yellow-500">
-                                💡 Get Hint (1 left)
-                            </button>
+                            <div class="flex justify-center items-center gap-4 p-2 bg-gray-100 rounded-lg">
+                                <div class="font-semibold text-lg text-indigo-700">
+                                    Hint Points: 💎 <span id="hint-points-display">2</span>
+                                </div>
+                                <button id="hint-btn-letter" class="hint-btn bg-yellow-400 text-yellow-900 font-bold py-2 px-4 rounded-full shadow hover:bg-yellow-500 text-sm">
+                                    Reveal Letter (2 💎)
+                                </button>
+                                <button id="hint-btn-super" class="hint-btn bg-purple-500 text-white font-bold py-2 px-4 rounded-full shadow hover:bg-purple-600 text-sm">
+                                    Super Hint (3 💎)
+                                </button>
+                            </div>
                         </div>
                         <!-- Keyboard -->
                         <div id="keyboard-buttons" class="flex flex-wrap justify-center gap-2 md:gap-3">
@@ -674,7 +771,6 @@
         </div>
 
         <!-- === DESKTOP CHAT WINDOW === -->
-        <!-- FIXED: Removed md:flex, only 'hidden' is needed -->
         <div id="chat-window-desktop" class="hidden flex-col overflow-hidden">
             <!-- Chat Header -->
             <div class="flex-shrink-0 flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg">
@@ -747,6 +843,32 @@
     <!-- === EMOJI DISPLAY AREA === -->
     <div id="emoji-display-area" class=""></div>
 
+    <!-- === HOW TO PLAY MODAL === -->
+    <div id="how-to-play-modal" class="hidden"> <!-- Start hidden -->
+        <div class="flashcard-container">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold text-indigo-700">How to Play</h2>
+                <button id="how-to-play-close-btn" class="text-gray-400 hover:text-gray-700">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Flashcard content -->
+            <div id="flashcard-content" class="space-y-4">
+                <!-- Cards will be injected by JS -->
+            </div>
+
+            <!-- Navigation -->
+            <div class="flex justify-between items-center mt-6">
+                <button id="flashcard-prev-btn" class="text-indigo-600 font-semibold hover:text-indigo-800 disabled:text-gray-400 disabled:cursor-not-allowed" disabled>&larr; Previous</button>
+                <div id="flashcard-dots" class="flex gap-2">
+                    <!-- Dots will be injected by JS -->
+                </div>
+                <button id="flashcard-next-btn" class="text-indigo-600 font-semibold hover:text-indigo-800">Next &rarr;</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -789,8 +911,10 @@
             // --- DOM Elements ---
             const gameContainer = document.getElementById('game-container'); // Get main container
             const modeSelectionScreen = document.getElementById('mode-selection-screen');
+            const localModeSelectionScreen = document.getElementById('local-mode-selection-screen'); // NEW
             const localSetupScreen = document.getElementById('local-setup-screen');
             const onlineSetupScreen = document.getElementById('online-setup-screen');
+            const botSetupScreen = document.getElementById('bot-setup-screen'); // NEW
             const roundSelectionScreen = document.getElementById('round-selection-screen');
             const waitingScreen = document.getElementById('waiting-screen');
             const setWordScreen = document.getElementById('set-word-screen');
@@ -801,12 +925,22 @@
             // Mode buttons
             const playLocalBtn = document.getElementById('play-local-btn');
             const playOnlineBtn = document.getElementById('play-online-btn');
+            const playHotseatBtn = document.getElementById('play-hotseat-btn'); // NEW
+            const playBotBtn = document.getElementById('play-bot-btn'); // NEW
+            const backToMainMenuBtn = document.getElementById('back-to-main-menu-btn'); // NEW
 
             // Local setup
             const localSecretWordInput = document.getElementById('local-secret-word-input');
             const startLocalGameBtn = document.getElementById('start-local-game-btn');
             const localSetupError = document.getElementById('local-setup-error');
-            const backToModesLocalBtn = document.getElementById('back-to-modes-local-btn');
+            const backToLocalModeBtn = document.getElementById('back-to-local-mode-btn'); // NEW
+            const backToLocalModeBtn2 = document.getElementById('back-to-local-mode-btn-2'); // NEW
+
+            // Bot Setup
+            const botCategoryButtons = document.querySelectorAll('.bot-category-btn'); // NEW
+            const botDifficultyButtons = document.querySelectorAll('.bot-difficulty-btn'); // NEW
+            const startBotGameBtn = document.getElementById('start-bot-game-btn'); // NEW
+            const botSetupError = document.getElementById('bot-setup-error'); // NEW
 
             // Online setup
             const createNameInput = document.getElementById('create-name-input');
@@ -847,6 +981,7 @@
             const scoreDisplay = document.getElementById('score-display');
             const scoreText = document.getElementById('score-text');
             const roundText = document.getElementById('round-text');
+            const categoryDisplay = document.getElementById('category-display'); // NEW
             const timerDisplay = document.getElementById('timer-display');
             const timerText = document.getElementById('timer-text');
             const clockHandMobile = document.getElementById('clock-hand-mobile');
@@ -872,7 +1007,9 @@
             const wordDisplay = document.getElementById('word-display');
             const keyboardArea = document.getElementById('keyboard-area');
             const hintArea = document.getElementById('hint-area');
-            const hintBtn = document.getElementById('hint-btn');
+            const hintBtnLetter = document.getElementById('hint-btn-letter'); // NEW
+            const hintBtnSuper = document.getElementById('hint-btn-super'); // NEW
+            const hintPointsDisplay = document.getElementById('hint-points-display'); // NEW
             const keyboardButtons = document.getElementById('keyboard-buttons');
             const spectatorView = document.getElementById('spectator-view');
             const wrongGuessesDisplay = document.getElementById('wrong-guesses-display');
@@ -912,10 +1049,43 @@
             // Emoji Reaction Display
             const emojiDisplayArea = document.getElementById('emoji-display-area');
 
+            // How to Play Modal
+            const howToPlayBtn = document.getElementById('how-to-play-btn');
+            const howToPlayModal = document.getElementById('how-to-play-modal');
+            const howToPlayCloseBtn = document.getElementById('how-to-play-close-btn');
+            const flashcardContent = document.getElementById('flashcard-content');
+            const flashcardPrevBtn = document.getElementById('flashcard-prev-btn');
+            const flashcardNextBtn = document.getElementById('flashcard-next-btn');
+            const flashcardDots = document.getElementById('flashcard-dots');
+
             const hangmanParts = ['head', 'body', 'arm-left', 'arm-right', 'leg-left', 'leg-right'];
 
+            // --- Bot Word List ---
+            const wordLists = {
+                movies: {
+                    easy: ["FROZEN", "TOY STORY", "TITANIC", "AVATAR", "THE LION KING", "ALADDIN", "JOKER", "SPIDERMAN"],
+                    medium: ["THE MATRIX", "INCEPTION", "PARASITE", "STAR WARS", "HARRY POTTER", "JURASSIC PARK", "PULP FICTION", "FORREST GUMP", "FIGHT CLUB"],
+                    hard: ["INTERSTELLAR", "THE GODFATHER", "GOODFELLAS", "BLADE RUNNER", "APOCALYPSE NOW", "CITIZEN KANE", "CASABLANCA", "SUPERMAN"]
+                },
+                animals: {
+                    easy: ["DOG", "CAT", "FISH", "BIRD", "LION", "TIGER", "BEAR", "ZEBRA", "HORSE"],
+                    medium: ["ELEPHANT", "GIRAFFE", "KANGAROO", "PENGUIN", "CROCODILE", "DOLPHIN", "SQUIRREL", "CHEETAH", "OCTOPUS"],
+                    hard: ["HIPPOPOTAMUS", "RHINOCEROS", "PLATYPUS", "CHIMPANZEE", "ARMADILLO", "KOMODO DRAGON", "NARWHAL", "OPOSSUM"]
+                },
+                cars: {
+                    easy: ["FORD", "HONDA", "TOYOTA", "JEEP", "TESLA", "BMW", "AUDI", "KIA", "GMC"],
+                    medium: ["FERRARI", "PORSCHE", "MERCEDES", "SUBARU", "CHEVROLET", "NISSAN", "VOLKSWAGEN", "HYUNDAI"],
+                    hard: ["LAMBORGHINI", "BUGATTI", "MASERATI", "MCLAREN", "ASTON MARTIN", "ROLLS ROYCE", "BENTLEY", "KOENIGSEGG"]
+                },
+                food: {
+                    easy: ["APPLE", "BANANA", "PIZZA", "BREAD", "CHEESE", "CARROT", "GRAPES", "ORANGE", "PEAR"],
+                    medium: ["SPAGHETTI", "BROCCOLI", "STRAWBERRY", "PINEAPPLE", "CHOCOLATE", "HAMBURGER", "POTATO", "TOMATO", "CUCUMBER"],
+                    hard: ["WATERMELON", "CAULIFLOWER", "RASPBERRY", "BLACKBERRY", "ASPARAGUS", "EGGPLANT", "ZUCCHINI", "BLUEBERRY"]
+                }
+            };
+
             // --- Game State ---
-            let gameMode = 'local'; // 'local' or 'online'
+            let gameMode = 'local-hotseat'; // 'local-hotseat', 'local-bot', 'online'
             let secretWord = '';
             let guessedLetters = [];
             let wrongGuesses = 0;
@@ -925,6 +1095,9 @@
             const emojiList = ['👍', '😂', '😮', '👏', '😬'];
             const ROUND_DURATION = 150 * 1000; // 2.5 minutes in ms
             let selectedRounds = 3; // Default
+            let lastBotSettings = { category: 'movies', difficulty: 'easy' }; // NEW: For bot rematch
+            let currentHintPoints = 2; // NEW
+            let superHintUsedThisMatch = false; // NEW
 
             // Avatar colors
             const avatarColors = ['#EF4444', '#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899'];
@@ -1018,8 +1191,10 @@
             function showError(message, onSetup = true) {
                 let errorP;
                 // Determine which error field to show
-                if (gameMode === 'local') {
+                if (gameMode === 'local-hotseat') {
                     errorP = localSetupError;
+                } else if (gameMode === 'local-bot' && onSetup) {
+                    errorP = botSetupError;
                 } else if (currentRoomData && currentRoomData.gameState === 'setting_rounds') {
                     errorP = roundError;
                 } else if (currentRoomData && currentRoomData.gameState === 'waiting_for_word') {
@@ -1040,6 +1215,7 @@
 
             function hideAllErrors() {
                 if (localSetupError) localSetupError.classList.add('hidden');
+                if (botSetupError) botSetupError.classList.add('hidden');
                 if (setupError) setupError.classList.add('hidden');
                 if (roundError) roundError.classList.add('hidden');
                 if (setWordError) setWordError.classList.add('hidden');
@@ -1049,7 +1225,9 @@
             function hideAllScreens() {
                 gameContainer.classList.remove('in-game'); // Remove special padding
                 modeSelectionScreen.classList.add('hidden');
+                localModeSelectionScreen.classList.add('hidden'); // NEW
                 localSetupScreen.classList.add('hidden');
+                botSetupScreen.classList.add('hidden'); // NEW
                 onlineSetupScreen.classList.add('hidden');
                 roundSelectionScreen.classList.add('hidden');
                 waitingScreen.classList.add('hidden');
@@ -1067,6 +1245,7 @@
                 chatWindowDesktop.classList.add('hidden');
                 chatWindowDesktop.style.display = 'none';
                 playerInfoBox.classList.add('hidden');
+                playerInfoBox.style.display = 'none';
                 
                 timerDisplay.classList.add('hidden');
                 scoreDisplayMobile.classList.add('hidden'); // Hide mobile score display
@@ -1080,8 +1259,9 @@
                 scoreDisplayMobile.classList.remove('hidden');
                 // Desktop
                 playerInfoBox.classList.remove('hidden');
+                playerInfoBox.style.display = 'flex'; // Use flex
                 chatWindowDesktop.classList.remove('hidden');
-                chatWindowDesktop.style.display = 'flex'; // Use flex for column
+                chatWindowDesktop.style.display = 'flex'; // Use flex
             }
 
             function disableOnlineButtons() {
@@ -1099,9 +1279,32 @@
 
             // --- Event Listeners ---
             playLocalBtn.addEventListener('click', () => {
-                gameMode = 'local';
+                hideAllScreens();
+                localModeSelectionScreen.classList.remove('hidden');
+            });
+
+            // NEW: Local mode selection listeners
+            playHotseatBtn.addEventListener('click', () => {
+                gameMode = 'local-hotseat';
                 hideAllScreens();
                 localSetupScreen.classList.remove('hidden');
+            });
+            playBotBtn.addEventListener('click', () => {
+                gameMode = 'local-bot';
+                hideAllScreens();
+                botSetupScreen.classList.remove('hidden');
+                // Set default selections
+                botCategoryButtons[0].classList.add('selected');
+                botDifficultyButtons[1].classList.add('selected');
+            });
+            backToMainMenuBtn.addEventListener('click', resetGame); // Back to main menu
+            backToLocalModeBtn.addEventListener('click', () => {
+                hideAllScreens();
+                localModeSelectionScreen.classList.remove('hidden');
+            });
+            backToLocalModeBtn2.addEventListener('click', () => {
+                hideAllScreens();
+                localModeSelectionScreen.classList.remove('hidden');
             });
             
             playOnlineBtn.addEventListener('click', () => {
@@ -1115,7 +1318,12 @@
                 initializeAudio(); // Start audio on user interaction
                 startLocalGame();
             });
-            backToModesLocalBtn.addEventListener('click', resetGame);
+
+            startBotGameBtn.addEventListener('click', () => { // NEW
+                initializeAudio();
+                startBotGame();
+            });
+            
             backToModesOnlineBtn.addEventListener('click', resetGame);
             mainMenuBtn.addEventListener('click', resetGame);
             playAgainMatchBtn.addEventListener('click', startNewMatch); // New listener for rematch
@@ -1133,7 +1341,8 @@
             cancelGameBtn.addEventListener('click', cancelGame);
             copyGameIdBtn.addEventListener('click', () => copyToClipboard(gameIdDisplay.value, copyGameIdBtn, 'Copy'));
             playAgainBtn.addEventListener('click', handlePlayAgain);
-            hintBtn.addEventListener('click', handleHintRequest);
+            hintBtnLetter.addEventListener('click', () => handleHintRequest('letter')); // MODIFIED
+            hintBtnSuper.addEventListener('click', () => handleHintRequest('super')); // MODIFIED
 
             // Avatar Pickers
             function updateAvatar(display, index) {
@@ -1170,6 +1379,20 @@
                 });
             });
             setRoundsBtn.addEventListener('click', setRounds);
+            
+            // Bot setup listeners
+            botCategoryButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    botCategoryButtons.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+            });
+            botDifficultyButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    botDifficultyButtons.forEach(b => b.classList.remove('selected'));
+                    btn.classList.add('selected');
+                });
+            });
 
 
             // Input sanitization
@@ -1188,6 +1411,72 @@
             chatFormDesktop.addEventListener('submit', handleChatSubmit);
             emojiReactionBarDesktop.addEventListener('click', handleEmojiClick);
 
+            // --- How to Play Modal Logic ---
+            const flashcards = [
+                {
+                    title: "1. The Goal",
+                    text: "Welcome to Hangman! The goal is to guess a secret word, letter by letter. But be careful! You only get 6 wrong guesses (head, body, two arms, two legs) before the man is... well, you know."
+                },
+                {
+                    title: "2. Play Locally",
+                    text: "You have two local modes: \n<b>Hot-Seat:</b> One player enters a secret word, and the other player guesses. \n<b>Play vs. Bot:</b> You guess a random word chosen by the computer. You can even pick a category and difficulty!"
+                },
+                {
+                    title: "3. Play Online",
+                    text: "Create a room and share the Game Code with a friend! You'll play a full match, taking turns setting words for each other. You can set the number of rounds (Best of 3, 7, or custom) before the match starts."
+                },
+                {
+                    title: "4. The Timer",
+                    text: "In online games, each round has a 2.5-minute timer! If the guesser doesn't find the word in time, the word-setter gets the point for that round. So be quick!"
+                },
+                {
+                    title: "5. Hint Points 💎",
+                    text: "In online games, you start each round with <b>2 💎</b> and earn <b>+1 💎</b> for every correct guess. \n- Spend <b>2 💎</b> to reveal one random letter. \n- Spend <b>3 💎</b> for a Super Hint (reveals all of one letter), but only once per match!"
+                }
+            ];
+            let currentCard = 0;
+
+            function showFlashcard(index) {
+                const card = flashcards[index];
+                flashcardContent.innerHTML = `
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">${card.title}</h3>
+                    <p class="text-gray-600">${card.text}</p>
+                `;
+                // Update dots
+                flashcardDots.innerHTML = '';
+                for(let i = 0; i < flashcards.length; i++) {
+                    const dot = document.createElement('div');
+                    dot.classList.add('w-2', 'h-2', 'rounded-full', i === index ? 'bg-indigo-600' : 'bg-gray-300');
+                    flashcardDots.appendChild(dot);
+                }
+                // Update buttons
+                flashcardPrevBtn.disabled = index === 0;
+                flashcardNextBtn.disabled = index === flashcards.length - 1;
+            }
+            howToPlayBtn.addEventListener('click', () => {
+                currentCard = 0;
+                showFlashcard(currentCard);
+                howToPlayModal.classList.remove('hidden');
+                setTimeout(() => howToPlayModal.classList.add('visible'), 10); // For transition
+            });
+            howToPlayCloseBtn.addEventListener('click', () => {
+                howToPlayModal.classList.remove('visible');
+                setTimeout(() => howToPlayModal.classList.add('hidden'), 300); // For transition
+            });
+            flashcardNextBtn.addEventListener('click', () => {
+                if(currentCard < flashcards.length - 1) {
+                    currentCard++;
+                    showFlashcard(currentCard);
+                }
+            });
+            flashcardPrevBtn.addEventListener('click', () => {
+                if(currentCard > 0) {
+                    currentCard--;
+                    showFlashcard(currentCard);
+                }
+            });
+
+
             // --- URL Handling ---
             function checkUrlForGameId() {
                 // This feature was removed as requested.
@@ -1195,18 +1484,88 @@
 
             // --- LOCAL GAME FUNCTIONS ---
             function startLocalGame() {
+                gameMode = 'local-hotseat'; // Set mode
                 const word = localSecretWordInput.value.trim().toUpperCase();
                 if (!validateWord(word)) return;
+
                 secretWord = word;
                 guessedLetters = [...vowels];
                 wrongGuesses = 0;
+                
                 localSecretWordInput.value = '';
+                
                 hideAllScreens();
                 gameScreen.classList.remove('hidden');
                 scoreDisplayMobile.classList.add('hidden');
                 timerDisplay.classList.add('hidden');
                 hintArea.classList.add('hidden');
                 playerInfoBox.classList.add('hidden');
+                categoryDisplay.classList.add('hidden');
+
+                renderWordDisplay();
+                renderKeyboard(true); // Always guesser in local mode
+                updateHangmanDrawing();
+                wrongGuessesDisplay.textContent = '';
+                gameMessage.classList.add('hidden');
+            }
+
+            // --- NEW: Bot Game Function ---
+            function startBotGame(replayCategory = null, replayDifficulty = null) {
+                gameMode = 'local-bot';
+                
+                let selectedCategory, selectedDifficulty;
+
+                if (replayCategory && replayDifficulty) {
+                    selectedCategory = replayCategory;
+                    selectedDifficulty = replayDifficulty;
+                } else {
+                    const categoryBtn = document.querySelector('.bot-category-btn.selected');
+                    const difficultyBtn = document.querySelector('.bot-difficulty-btn.selected');
+
+                    if (!categoryBtn) {
+                        showError("Please select a category.", false);
+                        return;
+                    }
+                    if (!difficultyBtn) {
+                        showError("Please select a difficulty.", false);
+                        return;
+                    }
+                    selectedCategory = categoryBtn.dataset.category;
+                    selectedDifficulty = difficultyBtn.dataset.difficulty;
+                }
+                
+                // Save settings for "Play Again"
+                lastBotSettings = { category: selectedCategory, difficulty: selectedDifficulty };
+
+                // Get word from list
+                const wordPool = wordLists[selectedCategory][selectedDifficulty];
+                secretWord = wordPool[Math.floor(Math.random() * wordPool.length)].toUpperCase();
+                
+                guessedLetters = [...vowels];
+                wrongGuesses = 0;
+
+                // --- Apply Difficulty ---
+                const uniqueConsonants = [...new Set(secretWord.split('').filter(c => consonants.includes(c)))];
+                
+                if (selectedDifficulty === 'easy' && uniqueConsonants.length > 0) {
+                    // Reveal 1 random consonant
+                    const randIndex = Math.floor(Math.random() * uniqueConsonants.length);
+                    const hintLetter = uniqueConsonants.splice(randIndex, 1)[0];
+                    if(hintLetter) guessedLetters.push(hintLetter);
+                }
+                // Medium/Hard mode = vowels only
+
+                hideAllScreens();
+                gameScreen.classList.remove('hidden');
+                scoreDisplayMobile.classList.add('hidden');
+                timerDisplay.classList.add('hidden');
+                hintArea.classList.add('hidden'); // No hints vs bot
+                playerInfoBox.classList.add('hidden');
+
+                // Show category clue
+                categoryDisplay.textContent = `Category: ${selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1)}`;
+                categoryDisplay.classList.remove('hidden');
+                
                 renderWordDisplay();
                 renderKeyboard(true);
                 updateHangmanDrawing();
@@ -1245,7 +1604,7 @@
                     const gameDoc = await addDoc(gameCollection, {
                         creatorId: userId,
                         guesserId: null,
-                        players: { [userId]: { name: playerName, score: 0, avatar: playerAvatar } },
+                        players: { [userId]: { name: playerName, score: 0, avatar: playerAvatar, superHintUsed: false } }, // NEW: superHintUsed
                         currentWordSetter: userId,
                         currentGuesser: null,
                         gameState: 'setting_rounds',
@@ -1257,7 +1616,7 @@
                         lastWinnerId: null,
                         lastEmoji: { emoji: '', timestamp: null },
                         roundEndTime: null,
-                        hintUsed: false
+                        guesserHintPoints: 2 // NEW: Start with 2 hint points
                     });
                     currentGameId = gameDoc.id;
                     isGameCreator = true;
@@ -1307,7 +1666,7 @@
                     if (gameData.guesserId && gameData.guesserId !== userId) { showError('This game is already full.'); enableOnlineButtons(); return; }
                     let players = gameData.players;
                     const playerAvatar = avatarColors[joinAvatarIndex];
-                    if (!players[userId]) players[userId] = { name: playerName, score: 0, avatar: playerAvatar };
+                    if (!players[userId]) players[userId] = { name: playerName, score: 0, avatar: playerAvatar, superHintUsed: false }; // NEW: superHintUsed
                     await updateDoc(gameRef, { guesserId: userId, currentGuesser: userId, players: players, gameState: 'waiting_for_word', currentRound: 1 });
                     currentGameId = gameId;
                     isGameCreator = false;
@@ -1334,14 +1693,14 @@
                     secretWord = data.secretWord;
                     guessedLetters = data.guessedLetters || [];
                     wrongGuesses = data.wrongGuesses || 0;
+                    currentHintPoints = data.guesserHintPoints || 0; // NEW: Sync hint points
+                    
                     const amIWordSetter = userId === data.currentWordSetter;
                     const amIGuesser = userId === data.currentGuesser;
 
-                    // Show appropriate UI elements based on game state
                     if (data.gameState !== 'setting_rounds' && data.gameState !== 'waiting_for_guesser') {
                         showGameScreens();
                     } else {
-                        // Explicitly hide side panels for setup screens
                         chatToggleBtn.classList.add('hidden');
                         chatToggleBtn.style.display = 'none';
                         playerInfoBox.classList.add('hidden');
@@ -1365,6 +1724,7 @@
                         case 'waiting_for_word':
                             hideAllScreens();
                             showGameScreens();
+                            categoryDisplay.classList.add('hidden');
                             timerDisplay.classList.add('hidden');
                             playerInfoTimer.classList.add('hidden');
                             stopRoundTimer();
@@ -1376,6 +1736,7 @@
                             hideAllScreens();
                             gameScreen.classList.remove('hidden');
                             showGameScreens();
+                            categoryDisplay.classList.add('hidden');
                             timerDisplay.classList.remove('hidden');
                             playerInfoTimer.classList.remove('hidden');
                             gameMessage.classList.add('hidden');
@@ -1389,6 +1750,7 @@
                             hideAllScreens();
                             gameScreen.classList.remove('hidden');
                             showGameScreens();
+                            categoryDisplay.classList.add('hidden');
                             timerDisplay.classList.remove('hidden');
                             playerInfoTimer.classList.remove('hidden');
                             stopRoundTimer();
@@ -1408,7 +1770,6 @@
                     }
                 });
 
-                // chat listener
                 const chatCollection = collection(db, `artifacts/${appId}/public/data/hangmanGames`, gameId, 'messages');
                 const q = query(chatCollection, orderBy("timestamp", "desc"));
                 if (chatUnsubscribe) chatUnsubscribe();
@@ -1426,7 +1787,7 @@
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                     const roundEndTime = Date.now() + ROUND_DURATION;
-                    await updateDoc(gameRef, { secretWord: word, guessedLetters: [...vowels], wrongGuesses: 0, gameState: 'playing', roundEndTime: roundEndTime, hintUsed: false });
+                    await updateDoc(gameRef, { secretWord: word, guessedLetters: [...vowels], wrongGuesses: 0, gameState: 'playing', roundEndTime: roundEndTime, guesserHintPoints: 2 }); // Reset hint points
                     onlineSecretWordInput.value = '';
                 } catch (e) {
                     showError("Failed to set word. Please try again.", false);
@@ -1442,8 +1803,16 @@
                 let newStatus = 'playing';
                 let newWinnerId = null;
                 let newScores = currentRoomData.players || {};
-                if (secretWord.includes(letter)) { playSound('correct'); }
-                else { playSound('wrong'); newWrongGuesses++; }
+                let newHintPoints = currentRoomData.guesserHintPoints || 0;
+
+                if (secretWord.includes(letter)) {
+                    playSound('correct');
+                    newHintPoints++; // Earn 1 hint point
+                } else {
+                    playSound('wrong');
+                    newWrongGuesses++;
+                }
+
                 const allLettersGuessed = secretWord.split('').every(char => char === ' ' || newGuessedLetters.includes(char));
                 if (allLettersGuessed) {
                     newStatus = 'game_over';
@@ -1456,43 +1825,68 @@
                     newScores[newWinnerId].score++;
                     playSound('lose');
                 }
+                
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                    await updateDoc(gameRef, { guessedLetters: newGuessedLetters, wrongGuesses: newWrongGuesses, gameState: newStatus, lastWinnerId: newWinnerId, players: newScores });
+                    await updateDoc(gameRef, {
+                        guessedLetters: newGuessedLetters,
+                        wrongGuesses: newWrongGuesses,
+                        gameState: newStatus,
+                        lastWinnerId: newWinnerId,
+                        players: newScores,
+                        guesserHintPoints: newHintPoints
+                    });
                 } catch (e) {
                     showError("Error submitting guess. Please try again.", false);
                     button.disabled = false;
                 }
             }
 
-            async function handleHintRequest() {
-                if (currentRoomData.hintUsed || currentRoomData.gameState !== 'playing') return;
-                const remainingTime = currentRoomData.roundEndTime - Date.now();
-                const hintAvailableTime = ROUND_DURATION - 60000;
-                if (remainingTime > hintAvailableTime) {
-                    hintBtn.disabled = true;
-                    hintBtn.textContent = `💡 Hint in ${Math.ceil((remainingTime - hintAvailableTime) / 1000)}s`;
-                    setTimeout(() => {
-                        if (currentRoomData.gameState === 'playing' && !currentRoomData.hintUsed) {
-                            hintBtn.disabled = false;
-                            hintBtn.textContent = "💡 Get Hint (1 left)";
-                        }
-                    }, (remainingTime - hintAvailableTime) + 100);
-                    return;
-                }
+            async function handleHintRequest(type) {
+                const myPlayer = currentRoomData.players[userId];
+                
+                if (!myPlayer || currentRoomData.gameState !== 'playing') return;
+
+                const hintPoints = currentRoomData.guesserHintPoints || 0;
+                
+                if (type === 'letter' && hintPoints < 2) return;
+                if (type === 'super' && (hintPoints < 3 || myPlayer.superHintUsed)) return;
+
                 const availableHints = secretWord.split('').filter(char => consonants.includes(char) && !guessedLetters.includes(char));
                 if (availableHints.length === 0) {
-                    hintBtn.disabled = true;
-                    hintBtn.textContent = "No Hints Left";
+                    hintBtnLetter.disabled = true;
+                    hintBtnSuper.disabled = true;
                     return;
                 }
-                hintBtn.disabled = true;
-                const hintLetter = availableHints[Math.floor(Math.random() * availableHints.length)];
+
+                hintBtnLetter.disabled = true; // Disable both to prevent spam
+                hintBtnSuper.disabled = true;
+
+                let hintLetter;
+                let pointsToSubtract;
+                let newHintPoints;
+                let newSuperHintUsed = myPlayer.superHintUsed;
+                
+                if (type === 'letter') {
+                    pointsToSubtract = 2;
+                    hintLetter = availableHints[Math.floor(Math.random() * availableHints.length)];
+                } else { // Super Hint
+                    pointsToSubtract = 3;
+                    newSuperHintUsed = true;
+                    // Find most frequent hint letter
+                    const counts = {};
+                    availableHints.forEach(l => counts[l] = (counts[l] || 0) + 1);
+                    hintLetter = Object.keys(counts).reduce((a, b) => counts[a] > counts[b] ? a : b);
+                }
+
+                newHintPoints = hintPoints - pointsToSubtract;
                 let newGuessedLetters = [...guessedLetters, hintLetter];
                 let newStatus = 'playing';
                 let newWinnerId = null;
                 let newScores = currentRoomData.players || {};
-                playSound('correct');
+                
+                playSound('correct'); // Play correct sound for hint
+
                 const allLettersGuessed = secretWord.split('').every(char => char === ' ' || newGuessedLetters.includes(char));
                 if (allLettersGuessed) {
                     newStatus = 'game_over';
@@ -1500,12 +1894,24 @@
                     newScores[newWinnerId].score++;
                     playSound('win');
                 }
+
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
-                    await updateDoc(gameRef, { guessedLetters: newGuessedLetters, gameState: newStatus, lastWinnerId: newWinnerId, players: newScores, hintUsed: true });
+                    // Update super hint status inside the nested player object
+                    let playerUpdatePath = `players.${userId}.superHintUsed`;
+                    await updateDoc(gameRef, {
+                        guessedLetters: newGuessedLetters,
+                        gameState: newStatus,
+                        lastWinnerId: newWinnerId,
+                        players: newScores,
+                        guesserHintPoints: newHintPoints,
+                        [playerUpdatePath]: newSuperHintUsed // Use computed property name
+                    });
                 } catch (e) {
                     showError("Error using hint. Please try again.", false);
-                    hintBtn.disabled = false;
+                    // Re-enable buttons if update failed
+                    hintBtnLetter.disabled = false;
+                    hintBtnSuper.disabled = false;
                 }
             }
 
@@ -1523,7 +1929,7 @@
                         wrongGuesses: 0,
                         lastWinnerId: null,
                         roundEndTime: null,
-                        hintUsed: false
+                        guesserHintPoints: 2 // Reset hint points
                     });
                 } catch (e) { showError("Error starting next round. Please try again.", false); } finally { playAgainBtn.disabled = false; }
             }
@@ -1533,7 +1939,10 @@
                 try {
                     const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId);
                     const players = currentRoomData.players || {};
-                    for (const pid in players) { players[pid].score = 0; }
+                    for (const pid in players) {
+                        players[pid].score = 0;
+                        players[pid].superHintUsed = false; // Reset super hint
+                    }
                     await updateDoc(gameRef, {
                         players: players,
                         gameState: 'setting_rounds',
@@ -1546,11 +1955,11 @@
                         wrongGuesses: 0,
                         lastWinnerId: null,
                         roundEndTime: null,
-                        hintUsed: false
+                        guesserHintPoints: 2
                     });
                 } catch (e) { showError("Error starting new match.", false); playAgainMatchBtn.disabled = false; }
             }
-
+            
             // Timer functions
             function startRoundTimer(endTime) {
                 stopRoundTimer();
@@ -1651,13 +2060,23 @@
             function renderKeyboard(canGuess) {
                 keyboardArea.innerHTML = '';
                 if (canGuess) {
-                    hintArea.classList.remove('hidden');
-                    keyboardArea.appendChild(hintArea);
-                    const remainingTime = (currentRoomData.roundEndTime || 0) - Date.now();
-                    const hintAvailableTime = ROUND_DURATION - 60000;
-                    if (currentRoomData.hintUsed) { hintBtn.disabled = true; hintBtn.textContent = "💡 Hint Used"; }
-                    else if (remainingTime <= hintAvailableTime) { hintBtn.disabled = false; hintBtn.textContent = "💡 Get Hint (1 left)"; }
-                    else { hintBtn.disabled = true; const secondsLeft = Math.ceil((remainingTime - hintAvailableTime) / 1000); hintBtn.textContent = `💡 Hint in ${secondsLeft}s`; setTimeout(() => { if (currentRoomData.gameState === 'playing' && !currentRoomData.hintUsed) { hintBtn.disabled = false; hintBtn.textContent = "💡 Get Hint (1 left)"; } }, (remainingTime - hintAvailableTime) + 100); }
+                    if (gameMode === 'online') {
+                        hintArea.classList.remove('hidden');
+                        keyboardArea.appendChild(hintArea);
+                        const myPlayer = currentRoomData.players[userId];
+                        const hintPoints = currentRoomData.guesserHintPoints || 0;
+                        hintPointsDisplay.textContent = hintPoints;
+                        hintBtnLetter.disabled = hintPoints < 2;
+                        hintBtnSuper.disabled = hintPoints < 3 || myPlayer.superHintUsed;
+                        if(myPlayer.superHintUsed) {
+                            hintBtnSuper.textContent = "Super Hint Used";
+                        } else {
+                            hintBtnSuper.textContent = "Super Hint (3 💎)";
+                        }
+                    } else if (gameMode === 'local-bot') {
+                        hintArea.classList.add('hidden'); // No hints for bot
+                    }
+
                     keyboardArea.appendChild(keyboardButtons);
                     spectatorView.classList.add('hidden');
                     keyboardButtons.innerHTML = '';
@@ -1672,7 +2091,7 @@
                             else button.classList.add('bg-red-500','text-white');
                         }
                         button.addEventListener('click', () => {
-                            if (gameMode === 'local') handleGuessLocal(button);
+                            if (gameMode === 'local-hotseat' || gameMode === 'local-bot') handleGuessLocal(button);
                             else if (gameMode === 'online' && canGuess) handleGuessOnline(button);
                         });
                         keyboardButtons.appendChild(button);
@@ -1707,23 +2126,30 @@
                     messageText.classList.add('text-green-600','bg-gradient-to-r','from-cyan-500','to-blue-500','animate-pulse');
                     messageText.style.backgroundImage = 'linear-gradient(to right, var(--tw-gradient-stops))';
                     fireConfetti();
-                    if (currentRoomData.gameState !== 'game_over') playSound('win');
+                    if (gameMode === 'online' && currentRoomData.gameState !== 'game_over') playSound('win');
+                    else if (gameMode !== 'online') playSound('win');
                 } else {
                     messageText.textContent = 'GAME OVER!';
                     messageText.classList.add('text-red-600');
                     guessedLetters = [...secretWord.split('')];
                     renderWordDisplay();
-                    if (currentRoomData.gameState !== 'game_over') playSound('lose');
+                    if (gameMode === 'online' && currentRoomData.gameState !== 'game_over') playSound('lose');
+                    else if (gameMode !== 'online') playSound('lose');
                 }
-                if (gameMode === 'local') playAgainBtn.textContent = 'Play Again';
+                
+                if (gameMode === 'local-hotseat' || gameMode === 'local-bot') playAgainBtn.textContent = 'Play Again';
                 else if (isMatchOver) playAgainBtn.textContent = 'View Results';
                 else playAgainBtn.textContent = 'Next Round';
                 gameMessage.classList.remove('hidden');
             }
 
             async function handlePlayAgain() {
-                if (gameMode === 'local') resetGame();
-                else {
+                if (gameMode === 'local-hotseat') {
+                    resetGame(); // Go to main menu
+                } else if (gameMode === 'local-bot') {
+                    startBotGame(lastBotSettings.category, lastBotSettings.difficulty); // Start new bot game with same settings
+                } else {
+                    // Online logic
                     if (currentRoomData.currentRound >= currentRoomData.totalRounds) {
                         try { const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId); await updateDoc(gameRef, { gameState: 'leaderboard' }); }
                         catch (e) { showError("Error showing leaderboard.", false); }
@@ -1766,7 +2192,7 @@
                 }
                 stopRoundTimer();
                 resetClockHands();
-                secretWord = ''; guessedLetters = []; wrongGuesses = 0; currentGameId = null; isGameCreator = false; currentRoomData = {}; gameMode = 'local'; selectedRounds = 3;
+                secretWord = ''; guessedLetters = []; wrongGuesses = 0; currentGameId = null; isGameCreator = false; currentRoomData = {}; gameMode = 'local-hotseat'; selectedRounds = 3;
                 hideAllScreens();
                 modeSelectionScreen.classList.remove('hidden');
                 gameMessage.classList.add('hidden');
@@ -1918,7 +2344,6 @@
             // MANUALLY HIDE DESKTOP PANELS ON LOAD
             playerInfoBox.classList.add('hidden');
             chatWindowDesktop.classList.add('hidden');
-            chatWindowDesktop.style.display = 'none'; // Force hide
 
         }); // End of DOMContentLoaded
     </script>
