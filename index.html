@@ -250,10 +250,10 @@
                 <button id="back-to-local-modes-btn" class="text-sm text-gray-500 hover:underline">← Back</button>
             </div>
 
-            <!-- === HOT SEAT / ONLINE SET WORD SCREEN === -->
+            <!-- === HOT SEAT SETUP === -->
             <div id="hot-seat-setup-screen" class="hidden w-full text-center space-y-6">
                 <h2 class="text-3xl font-bold" id="secret-word-title">Secret Word</h2>
-                <p class="text-sm opacity-70">Enter a word for the opponent to guess.</p>
+                <p class="text-sm opacity-70">Enter a word for your friend to guess.</p>
                 <input type="password" id="hot-seat-input" class="w-full p-4 text-center text-2xl tracking-widest font-mono rounded-xl border bg-white/50 focus:bg-white transition outline-none" placeholder="SECRET">
                 <button id="start-hot-seat-btn" class="neon-btn w-full py-3 rounded-xl font-bold text-lg">Start Game</button>
                 <button id="back-hot-seat-btn" class="text-sm text-gray-500 hover:underline">← Back</button>
@@ -263,7 +263,11 @@
             <div id="online-setup-screen" class="hidden w-full space-y-6">
                 <div class="flex justify-between items-center">
                     <h2 class="text-2xl font-bold">Online Lobby</h2>
-                    <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-2 py-1 rounded">Multiplayer</span>
+                    <!-- Fixed badge spacing and alignment -->
+                    <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full flex items-center gap-1">
+                        Multiplayer 
+                        <span class="text-sm">?</span>
+                    </span>
                 </div>
                 
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden lobby-card">
@@ -298,6 +302,32 @@
                 <button id="back-online-btn" class="w-full text-center text-sm opacity-60 hover:opacity-100">← Back to Menu</button>
             </div>
 
+            <!-- === ROUND SELECTION SCREEN (UPDATED) === -->
+             <div id="round-selection-screen" class="hidden w-full text-center space-y-6">
+                <h2 class="text-3xl font-bold">Match Settings</h2>
+                <p class="opacity-70">Select Match Duration</p>
+                
+                <div class="grid gap-3 max-w-xs mx-auto">
+                    <button class="round-opt-btn bg-white p-4 rounded-xl border hover:border-indigo-500 shadow font-bold text-lg transition transform hover:scale-105" data-type="preset" data-rounds="3">
+                        ⚡ Small Match <span class="block text-sm font-normal opacity-60">(3 Rounds)</span>
+                    </button>
+                    <button class="round-opt-btn bg-white p-4 rounded-xl border hover:border-indigo-500 shadow font-bold text-lg transition transform hover:scale-105" data-type="preset" data-rounds="7">
+                        🏆 Normal Match <span class="block text-sm font-normal opacity-60">(7 Rounds)</span>
+                    </button>
+                    <button class="round-opt-btn bg-white p-4 rounded-xl border hover:border-indigo-500 shadow font-bold text-lg transition transform hover:scale-105" data-type="custom" data-rounds="0">
+                        ⚙️ Custom <span class="block text-sm font-normal opacity-60">(Manual)</span>
+                    </button>
+                </div>
+
+                <!-- Custom Input Field (Hidden by default) -->
+                <div id="custom-round-input-container" class="hidden max-w-xs mx-auto bg-white p-4 rounded-xl border shadow-sm animate-fade-in">
+                    <label class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 block">Enter Rounds (1-20)</label>
+                    <input type="number" id="custom-rounds-input" class="w-full p-3 rounded-lg border-2 border-indigo-100 text-center text-2xl font-bold text-indigo-600 focus:border-indigo-500 outline-none" min="1" max="20" placeholder="#">
+                </div>
+
+                <button id="confirm-rounds-btn" class="neon-btn w-full py-3 rounded-xl font-bold text-lg hidden">Start Match</button>
+            </div>
+
             <!-- === WAITING ROOM === -->
             <div id="waiting-screen" class="hidden w-full text-center space-y-6">
                 <h2 class="text-3xl font-bold text-emerald-500 animate-pulse">Room Ready!</h2>
@@ -309,7 +339,7 @@
                     </div>
                 </div>
                 <div class="loader"></div>
-                <p id="waiting-msg" class="opacity-60 text-sm">Waiting for players...</p>
+                <p class="opacity-60 text-sm">Waiting for players...</p>
                 <button id="cancel-room-btn" class="text-red-500 text-sm underline">Cancel</button>
             </div>
 
@@ -319,8 +349,8 @@
                 <!-- Top Bar: Score, Coins, Time -->
                 <div class="w-full flex justify-between items-start mb-4 mt-12">
                     <div class="text-left">
-                        <div class="text-xs font-bold opacity-60 uppercase">Score</div>
-                        <div id="score-display" class="text-xl font-bold">0</div>
+                        <div class="text-xs font-bold opacity-60 uppercase">Wins</div>
+                        <div id="score-display" class="text-xl font-bold">P1: 0 - P2: 0</div>
                         <div id="streak-container" class="text-[10px] font-bold text-orange-500 hidden">🔥 <span id="streak-count">0</span></div>
                     </div>
                     
@@ -330,7 +360,7 @@
                             <span>🪙</span>
                             <span id="coin-display">5</span>
                         </div>
-                        <div class="text-xs font-bold opacity-60 mt-1" id="round-display">Round 1</div>
+                        <div class="text-xs font-bold opacity-60 mt-1" id="round-display">Round 1 / 3</div>
                         <!-- SPECTATOR BADGE -->
                         <div id="spectator-badge" class="hidden bg-gray-800 text-white text-[10px] px-2 py-1 rounded mt-1 uppercase tracking-wide">Spectator</div>
                         <!-- WAITING BADGE -->
@@ -417,6 +447,7 @@
                 <div id="result-word" class="text-2xl font-mono mb-8 text-indigo-300">Word was: SECRET</div>
                 <div class="flex gap-4">
                     <button id="replay-btn" class="neon-btn px-8 py-3 rounded-full font-bold text-lg">Play Again</button>
+                    <button id="next-round-btn" class="neon-btn px-8 py-3 rounded-full font-bold text-lg hidden">Next Round</button>
                     <button id="menu-btn" class="bg-white text-black px-8 py-3 rounded-full font-bold text-lg hover:bg-gray-200">Menu</button>
                 </div>
                 <!-- Definition Section -->
@@ -447,7 +478,7 @@
 
         // --- DOM ELEMENTS ---
         const $ = (id) => document.getElementById(id);
-        const screens = ['mode-selection-screen', 'local-mode-selection-screen', 'bot-setup-screen', 'hot-seat-setup-screen', 'online-setup-screen', 'waiting-screen', 'game-screen'];
+        const screens = ['mode-selection-screen', 'local-mode-selection-screen', 'bot-setup-screen', 'hot-seat-setup-screen', 'online-setup-screen', 'round-selection-screen', 'waiting-screen', 'game-screen'];
         
         // --- STATE VARIABLES ---
         let app, auth, db, userId, currentGameId, isHost, roomUnsub;
@@ -465,31 +496,24 @@
         let isFrozen = false;
         let isSpectator = false; 
         let botSettings = { cat: null, diff: null };
-        let usedWords = new Set();
-        let audioCtx;
         let createAvatar = { idx: 0, face: 0 };
         let joinAvatar = { idx: 1, face: 0 };
         
+        // MATCH STATE
+        let currentRound = 1;
+        let totalRounds = 3;
+        let p1Score = 0;
+        let p2Score = 0;
+
         const avatarColors = ['#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899'];
         const avatarFaces = ['😎', '🤓', '🤠', '🤡', '🤖', '👽', '👻', '🐱'];
         const COSTS = { bomb: 6, shield: 4, freeze: 2, voice: 0 };
-
-        // --- WORDS DATA ---
         const WORDS = {
-            movies: {
-                easy: ["FROZEN", "SHREK", "CARS", "MOANA", "UP", "COCO", "ELF"],
-                medium: ["AVATAR", "TITANIC", "JOKER", "MATRIX", "ALIEN", "ROCKY"],
-                hard: ["INCEPTION", "GLADIATOR", "PARASITE", "WHIPLASH", "INTERSTELLAR"]
-            },
-            food: {
-                easy: ["PIZZA", "TACO", "CAKE", "SOUP", "EGG", "PIE"],
-                medium: ["BURGER", "SUSHI", "PASTA", "SALAD", "STEAK", "CURRY"],
-                hard: ["CROISSANT", "LASAGNA", "FALAFEL", "RISOTTO", "PAELLA"]
-            },
-            cars: { easy: ["FORD", "BMW", "AUDI", "JEEP"], medium: ["TESLA", "HONDA", "TOYOTA"], hard: ["FERRARI", "PORSCHE", "BUGATTI"] },
-            fruits: { easy: ["APPLE", "PEAR", "KIWI"], medium: ["ORANGE", "BANANA", "GRAPE"], hard: ["PINEAPPLE", "STRAWBERRY", "BLUEBERRY"] }
+            movies: { easy: ["FROZEN", "SHREK", "CARS"], medium: ["AVATAR", "TITANIC", "JOKER"], hard: ["INCEPTION", "GLADIATOR"] },
+            food: { easy: ["PIZZA", "TACO"], medium: ["BURGER", "SUSHI"], hard: ["CROISSANT", "LASAGNA"] },
+            cars: { easy: ["FORD", "BMW"], medium: ["TESLA", "HONDA"], hard: ["FERRARI", "PORSCHE"] },
+            fruits: { easy: ["APPLE", "PEAR"], medium: ["ORANGE", "BANANA"], hard: ["PINEAPPLE", "STRAWBERRY"] }
         };
-
         const THEME_MAP = { movies: 'neon', cars: 'neon', fruits: 'nature', food: 'candy', default: 'candy', daily: 'neon' };
 
         // --- INITIALIZATION ---
@@ -497,7 +521,7 @@
             const synth = typeof Tone !== 'undefined' ? new Tone.Synth().toDestination() : null;
             const playTone = (note, type='8n') => { if(synth) synth.triggerAttackRelease(note, type); };
 
-            // Theme Handling
+            // Theme
             document.querySelectorAll('.theme-btn').forEach(btn => {
                 btn.addEventListener('click', () => document.body.setAttribute('data-theme', btn.dataset.setTheme));
             });
@@ -508,29 +532,21 @@
                 $('settings-btn').classList.toggle('hidden', screenId !== 'game-screen');
             };
 
-            // --- AVATAR LOGIC (Color + Face) ---
-            const renderAvatar = (el, data) => {
-                el.style.backgroundColor = avatarColors[data.idx];
-                el.innerText = avatarFaces[data.face];
-            };
+            // Avatar
+            const renderAvatar = (el, data) => { el.style.backgroundColor = avatarColors[data.idx]; el.innerText = avatarFaces[data.face]; };
+            $('host-avatar-color').onclick = () => { createAvatar.idx = (createAvatar.idx+1)%avatarColors.length; renderAvatar($('host-avatar'), createAvatar); };
+            $('host-avatar-face').onclick = () => { createAvatar.face = (createAvatar.face+1)%avatarFaces.length; renderAvatar($('host-avatar'), createAvatar); };
+            $('join-avatar-color').onclick = () => { joinAvatar.idx = (joinAvatar.idx+1)%avatarColors.length; renderAvatar($('join-avatar'), joinAvatar); };
+            $('join-avatar-face').onclick = () => { joinAvatar.face = (joinAvatar.face+1)%avatarFaces.length; renderAvatar($('join-avatar'), joinAvatar); };
+            renderAvatar($('host-avatar'), createAvatar); renderAvatar($('join-avatar'), joinAvatar);
 
-            // Host
-            $('host-avatar-color').onclick = () => { createAvatar.idx = (createAvatar.idx + 1) % avatarColors.length; renderAvatar($('host-avatar'), createAvatar); };
-            $('host-avatar-face').onclick = () => { createAvatar.face = (createAvatar.face + 1) % avatarFaces.length; renderAvatar($('host-avatar'), createAvatar); };
-            renderAvatar($('host-avatar'), createAvatar);
-
-            // Join
-            $('join-avatar-color').onclick = () => { joinAvatar.idx = (joinAvatar.idx + 1) % avatarColors.length; renderAvatar($('join-avatar'), joinAvatar); };
-            $('join-avatar-face').onclick = () => { joinAvatar.face = (joinAvatar.face + 1) % avatarFaces.length; renderAvatar($('join-avatar'), joinAvatar); };
-            renderAvatar($('join-avatar'), joinAvatar);
-
-
-            // --- MENU LISTENERS ---
+            // Navigation
             $('play-local-btn').onclick = () => showScreen('local-mode-selection-screen');
             $('play-online-btn').onclick = () => { showScreen('online-setup-screen'); initFirebase(); };
             $('play-daily-btn').onclick = () => startDailyChallenge();
             $('back-to-modes-from-local-btn').onclick = () => showScreen('mode-selection-screen');
             $('back-online-btn').onclick = () => showScreen('mode-selection-screen');
+            
             $('play-hot-seat-btn').onclick = () => { $('hot-seat-input').value = ''; showScreen('hot-seat-setup-screen'); };
             $('back-hot-seat-btn').onclick = () => showScreen('local-mode-selection-screen');
             $('start-hot-seat-btn').onclick = () => { 
@@ -543,40 +559,68 @@
             
             $('play-bot-btn').onclick = () => { resetBotUI(); showScreen('bot-setup-screen'); };
             $('back-to-local-modes-btn').onclick = () => showScreen('local-mode-selection-screen');
-
-            document.querySelectorAll('.bot-cat-btn').forEach(b => b.onclick = (e) => {
-                document.querySelectorAll('.bot-cat-btn').forEach(x => x.classList.remove('bg-indigo-100', 'border-indigo-500'));
-                e.target.classList.add('bg-indigo-100', 'border-indigo-500'); botSettings.cat = e.target.dataset.cat;
-            });
-            document.querySelectorAll('.bot-diff-btn').forEach(b => b.onclick = (e) => {
-                document.querySelectorAll('.bot-diff-btn').forEach(x => x.classList.remove('ring-2', 'ring-offset-1'));
-                e.target.classList.add('ring-2', 'ring-offset-1'); botSettings.diff = e.target.dataset.diff;
-            });
-            
+            document.querySelectorAll('.bot-cat-btn').forEach(b => b.onclick = (e) => { document.querySelectorAll('.bot-cat-btn').forEach(x=>x.classList.remove('bg-indigo-100','border-indigo-500')); e.target.classList.add('bg-indigo-100','border-indigo-500'); botSettings.cat = e.target.dataset.cat; });
+            document.querySelectorAll('.bot-diff-btn').forEach(b => b.onclick = (e) => { document.querySelectorAll('.bot-diff-btn').forEach(x=>x.classList.remove('ring-2')); e.target.classList.add('ring-2'); botSettings.diff = e.target.dataset.diff; });
             $('start-bot-game-btn').onclick = () => {
                 const custom = $('custom-word-list').value;
-                if (custom.trim().length > 0) {
-                    const list = custom.split(',').map(s => s.trim().toUpperCase()).filter(s => s.length > 1);
-                    if (list.length > 0) { startGame(list[Math.floor(Math.random() * list.length)], 'bot', 'default'); return; }
-                }
-                if (!botSettings.cat || !botSettings.diff) { alert("Select Category & Difficulty"); return; }
-                const pool = WORDS[botSettings.cat][botSettings.diff];
-                startGame(pool[Math.floor(Math.random() * pool.length)], 'bot', botSettings.cat);
+                if (custom.trim().length > 0) { const list = custom.split(',').map(s=>s.trim().toUpperCase()).filter(s=>s.length>1); if(list.length>0) return startGame(list[Math.floor(Math.random()*list.length)], 'bot', 'default'); }
+                if (!botSettings.cat || !botSettings.diff) return alert("Select Category & Difficulty");
+                const pool = WORDS[botSettings.cat][botSettings.diff]; startGame(pool[Math.floor(Math.random()*pool.length)], 'bot', botSettings.cat);
             };
 
+            // Online Tabs & Copy
             $('tab-host').onclick = () => { $('tab-host').classList.add('active'); $('tab-join').classList.remove('active'); $('view-host').classList.remove('hidden'); $('view-join').classList.add('hidden'); };
             $('tab-join').onclick = () => { $('tab-join').classList.add('active'); $('tab-host').classList.remove('active'); $('view-join').classList.remove('hidden'); $('view-host').classList.add('hidden'); };
             $('create-room-btn').onclick = createRoom; $('join-room-btn').onclick = joinRoom;
-            
             $('copy-code-btn').onclick = () => {
-                const text = $('room-code-display').value;
-                const textArea = document.createElement("textarea");
-                textArea.value = text; textArea.style.position = "fixed";
-                document.body.appendChild(textArea); textArea.focus(); textArea.select();
-                try { document.execCommand('copy'); $('copy-code-btn').innerText = "Copied!"; } catch (e) {}
-                document.body.removeChild(textArea); setTimeout(() => $('copy-code-btn').innerText = "Copy", 1500);
+                const text = $('room-code-display').value; const textArea = document.createElement("textarea"); textArea.value = text; textArea.style.position = "fixed"; document.body.appendChild(textArea); textArea.focus(); textArea.select();
+                try { document.execCommand('copy'); $('copy-code-btn').innerText = "Copied!"; } catch (e) {} document.body.removeChild(textArea); setTimeout(() => $('copy-code-btn').innerText = "Copy", 1500);
             };
-            
+
+            // Rounds Logic (UPDATED)
+            const roundBtns = document.querySelectorAll('.round-opt-btn');
+            const customInputDiv = $('custom-round-input-container');
+            const customInput = $('custom-rounds-input');
+            const startMatchBtn = $('confirm-rounds-btn');
+
+            roundBtns.forEach(b => b.onclick = (e) => {
+                // Reset UI
+                roundBtns.forEach(x => x.classList.remove('border-indigo-500', 'bg-indigo-50', 'ring-2', 'ring-indigo-200'));
+                const btn = e.currentTarget; // Use currentTarget to ensure we get the button, not the span inside
+                btn.classList.add('border-indigo-500', 'bg-indigo-50', 'ring-2', 'ring-indigo-200');
+                
+                const type = btn.dataset.type;
+                
+                if (type === 'custom') {
+                    customInputDiv.classList.remove('hidden');
+                    startMatchBtn.classList.add('hidden'); // Hide start until input is valid
+                    customInput.focus();
+                    totalRounds = 0;
+                } else {
+                    customInputDiv.classList.add('hidden');
+                    totalRounds = parseInt(btn.dataset.rounds);
+                    startMatchBtn.classList.remove('hidden');
+                }
+            });
+
+            customInput.addEventListener('input', (e) => {
+                const val = parseInt(e.target.value);
+                if (val && val > 0 && val <= 50) {
+                    totalRounds = val;
+                    startMatchBtn.classList.remove('hidden');
+                } else {
+                    startMatchBtn.classList.add('hidden');
+                }
+            });
+
+            $('confirm-rounds-btn').onclick = async () => {
+                if (!totalRounds || totalRounds < 1) return alert("Please select rounds!");
+                // Update Firebase and start
+                await updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { totalRounds, currentRound: 1, status: 'waiting_for_guest' });
+                enterWaitingRoom(currentGameId);
+            };
+
+            // Settings & Play
             $('settings-btn').onclick = () => $('settings-modal').classList.remove('hidden');
             $('settings-resume-btn').onclick = () => $('settings-modal').classList.add('hidden');
             const fullReset = () => { setTheme('default'); location.reload(); };
@@ -605,47 +649,47 @@
                 if(gameMode === 'bot') $('start-bot-game-btn').click();
                 else if(gameMode === 'hotseat') showScreen('hot-seat-setup-screen');
                 else if(gameMode === 'daily') alert("Come back tomorrow!");
-                else location.reload(); // Simple reload for now
+                else location.reload();
+                $('result-overlay').classList.add('hidden');
+            };
+            
+            $('next-round-btn').onclick = () => {
+                if(gameMode === 'bot' || gameMode === 'daily') location.reload(); // Simple logic for solo
+                else if(gameMode === 'online' && isHost) {
+                     // Host triggers next round
+                     if(currentRound < totalRounds) {
+                         updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { 
+                            currentRound: currentRound + 1, 
+                            status: 'setup', 
+                            secretWord: '', 
+                            guessedLetters: [], 
+                            wrongGuesses: 0 
+                        });
+                     } else {
+                         // End Match
+                         alert(`MATCH OVER! Final Score: P1 ${p1Score} - P2 ${p2Score}`);
+                         location.reload();
+                     }
+                }
                 $('result-overlay').classList.add('hidden');
             };
             $('menu-btn').onclick = fullReset;
 
+            // --- GAMEPLAY ---
             function setTheme(category) { document.body.setAttribute('data-theme', THEME_MAP[category] || 'candy'); }
 
             function startGame(word, mode, category = 'default') {
-                secretWord = word.toUpperCase();
-                gameMode = mode;
-                setTheme(category);
-                guessedLetters = ['A','E','I','O','U'];
-                wrongGuesses = 0;
-                streak = 0;
-                score = 0;
-                activeShield = false;
-                isFrozen = false;
+                secretWord = word.toUpperCase(); gameMode = mode; setTheme(category);
+                guessedLetters = ['A','E','I','O','U']; wrongGuesses = 0; streak = 0; activeShield = false; isFrozen = false;
                 
                 showScreen('game-screen');
-                $('result-overlay').classList.add('hidden');
-                $('shield-overlay').classList.add('hidden');
+                $('result-overlay').classList.add('hidden'); $('shield-overlay').classList.add('hidden');
                 $('settings-change-difficulty-btn').classList.toggle('hidden', mode !== 'bot');
+                $('round-display').innerText = `Round ${currentRound} / ${totalRounds}`;
+                $('score-display').innerText = `P1: ${p1Score} - P2: ${p2Score}`;
                 
-                // Setup UI per mode
-                if(isSpectator) {
-                    $('keyboard').classList.add('hidden');
-                    $('powerups-bar').classList.add('hidden');
-                    $('spectator-msg').classList.remove('hidden');
-                    $('spectator-badge').classList.remove('hidden');
-                } else {
-                    $('keyboard').classList.remove('hidden');
-                    $('powerups-bar').classList.remove('hidden');
-                    $('spectator-msg').classList.add('hidden');
-                    $('spectator-badge').classList.add('hidden');
-                }
-
-                // Online Host Word Setting
-                if(mode === 'online' && !word) {
-                   // This block is hit when game starts but word isn't set
-                   // Handled by Firestore listener mostly
-                }
+                if(isSpectator) { $('keyboard').classList.add('hidden'); $('powerups-bar').classList.add('hidden'); $('spectator-msg').classList.remove('hidden'); $('spectator-badge').classList.remove('hidden'); } 
+                else { $('keyboard').classList.remove('hidden'); $('powerups-bar').classList.remove('hidden'); $('spectator-msg').classList.add('hidden'); $('spectator-badge').classList.add('hidden'); }
 
                 renderWord(); renderKeyboard(); renderHangman(); updateStats(); updatePowerupsUI();
                 if(word) startTimer(150);
@@ -657,8 +701,7 @@
                 secretWord.split('').forEach(char => {
                     const slot = document.createElement('div');
                     slot.className = `w-10 h-14 flex items-end justify-center text-3xl font-bold border-b-4 mx-1 ${guessedLetters.includes(char) ? 'word-slot-revealed' : 'word-slot-empty'}`;
-                    if (char === ' ') { slot.className = 'w-6'; slot.innerHTML = '&nbsp;'; }
-                    else if (guessedLetters.includes(char)) { slot.innerText = char; }
+                    if (char === ' ') { slot.className = 'w-6'; slot.innerHTML = '&nbsp;'; } else if (guessedLetters.includes(char)) { slot.innerText = char; }
                     container.appendChild(slot);
                 });
             }
@@ -666,80 +709,40 @@
             function renderKeyboard() {
                 const kb = $('keyboard'); kb.innerHTML = '';
                 "BCDFGHJKLMNPQRSTVWXYZ".split('').forEach(char => {
-                    const btn = document.createElement('button');
-                    btn.innerText = char;
-                    btn.className = `keyboard-button w-10 h-12 rounded-lg text-lg font-bold transition transform active:scale-95`;
-                    btn.id = `key-${char}`;
+                    const btn = document.createElement('button'); btn.innerText = char; btn.className = `keyboard-button w-10 h-12 rounded-lg text-lg font-bold transition transform active:scale-95`; btn.id = `key-${char}`;
                     if(guessedLetters.includes(char)) { btn.disabled = true; btn.classList.add(secretWord.includes(char) ? 'correct-guess' : 'wrong-guess'); }
-                    btn.onclick = () => handleGuess(char);
-                    kb.appendChild(btn);
+                    btn.onclick = () => handleGuess(char); kb.appendChild(btn);
                 });
             }
 
             function handleGuess(char) {
                 if(guessedLetters.includes(char) || wrongGuesses >= maxWrong) return;
-                
-                if(gameMode === 'online') {
-                    // Online: Update Firestore
-                    updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), {
-                        lastGuess: char,
-                        guessCount: (currentRoomData.guessCount || 0) + 1
-                    });
-                } else {
-                    // Local
-                    processGuess(char);
-                }
+                if(gameMode === 'online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: char, guessCount: Math.random() });
+                else processGuess(char);
             }
 
             function processGuess(char) {
                 if(guessedLetters.includes(char)) return;
                 guessedLetters.push(char);
                 const btn = $(`key-${char}`); if(btn) btn.disabled = true;
-
                 if (secretWord.includes(char)) {
-                    if(btn) btn.classList.add('correct-guess'); 
-                    streak++; score += 10 * streak; coins += 3;
-                    playTone("C5"); if(btn) createFloatingText(btn, `+${10*streak}`);
-                    if(streak >= 3 && btn) btn.classList.add('on-fire');
-                    checkWin();
+                    if(btn) btn.classList.add('correct-guess'); streak++; coins += 3; playTone("C5"); if(btn) createFloatingText(btn, `+3c`);
+                    if(streak >= 3 && btn) btn.classList.add('on-fire'); checkWin();
                 } else {
-                    if (activeShield) {
-                        activeShield = false; $('shield-overlay').classList.add('hidden'); if(btn) createFloatingText(btn, "BLOCKED!"); playTone("A3");
-                    } else {
-                        if(btn) btn.classList.add('wrong-guess'); 
-                        wrongGuesses++; streak = 0; playTone("E2");
-                        $('game-container').classList.add('shake-effect'); setTimeout(()=>$('game-container').classList.remove('shake-effect'), 300);
-                    }
+                    if (activeShield) { activeShield = false; $('shield-overlay').classList.add('hidden'); if(btn) createFloatingText(btn, "BLOCKED!"); playTone("A3"); } 
+                    else { if(btn) btn.classList.add('wrong-guess'); wrongGuesses++; streak = 0; playTone("E2"); $('game-container').classList.add('shake-effect'); setTimeout(()=>$('game-container').classList.remove('shake-effect'), 300); }
                     checkLoss();
                 }
                 renderWord(); renderHangman(); updateStats(); updatePowerupsUI();
             }
 
-            function renderHangman() {
-                const parts = ['part-head', 'part-body', 'part-arm-l', 'part-arm-r', 'part-leg-l', 'part-leg-r'];
-                parts.forEach((id, idx) => $(id).style.visibility = idx < wrongGuesses ? 'visible' : 'hidden');
-            }
-
-            function updateStats() {
-                $('score-display').innerText = score;
-                $('coin-display').innerText = coins; 
-                if(streak > 1) { $('streak-container').classList.remove('hidden'); $('streak-count').innerText = streak; }
-                else $('streak-container').classList.add('hidden');
-            }
-
+            function renderHangman() { ['part-head','part-body','part-arm-l','part-arm-r','part-leg-l','part-leg-r'].forEach((id, idx) => $(id).style.visibility = idx < wrongGuesses ? 'visible' : 'hidden'); }
+            function updateStats() { $('score-display').innerText = `P1: ${p1Score} - P2: ${p2Score}`; $('coin-display').innerText = coins; }
             function checkWin() { if (secretWord.split('').every(c => c === ' ' || guessedLetters.includes(c))) endGame(true); }
             function checkLoss() { if (wrongGuesses >= maxWrong) endGame(false); }
 
             async function fetchDefinition(word) {
-                try {
-                    const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
-                    const data = await res.json();
-                    const def = data[0]?.meanings[0]?.definitions[0]?.definition;
-                    $('word-definition').classList.remove('hidden');
-                    $('def-text').innerText = def ? `"${def}"` : `"A mystery word."`;
-                } catch(e) {
-                    $('word-definition').classList.add('hidden');
-                }
+                try { const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`); const data = await res.json(); const def = data[0]?.meanings[0]?.definitions[0]?.definition; $('word-definition').classList.remove('hidden'); $('def-text').innerText = def ? `"${def}"` : `"A mystery word."`; } catch(e) { $('word-definition').classList.add('hidden'); }
             }
 
             function endGame(win) {
@@ -749,101 +752,66 @@
                 title.innerText = win ? "VICTORY!" : "GAME OVER";
                 title.className = `text-6xl font-extrabold mb-4 drop-shadow-lg ${win ? 'text-emerald-400' : 'text-rose-500'}`;
                 $('result-word').innerText = `Word: ${secretWord}`;
-                if(win) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); playTone("C4", "2n"); coins += 7; updateStats(); } 
-                else { playTone("C2", "2n"); }
+                
+                // Score Logic
+                if(win) {
+                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); playTone("C4", "2n"); coins += 7;
+                     // Guessing Player Wins
+                     if((currentRound % 2 !== 0 && !isHost) || (currentRound % 2 === 0 && isHost)) {
+                         // Guesser won
+                         if(isHost) p1Score++; else p2Score++;
+                     }
+                } else {
+                     playTone("C2", "2n");
+                     // Setter Wins
+                     if((currentRound % 2 !== 0 && isHost) || (currentRound % 2 === 0 && !isHost)) {
+                         if(isHost) p1Score++; else p2Score++;
+                     }
+                }
+                updateStats();
                 fetchDefinition(secretWord);
-            }
-
-            // --- POWERUPS ---
-            function updatePowerupsUI() {
-                ['bomb', 'shield', 'freeze'].forEach(p => {
-                    const btn = $(`pup-${p}`); const cost = COSTS[p];
-                    btn.disabled = coins < cost; 
-                    if(coins >= cost) btn.onclick = () => activatePowerup(p); else btn.onclick = null;
-                });
-                $('pup-voice').onclick = () => activateVoice();
-            }
-
-            function activatePowerup(type) {
-                const cost = COSTS[type]; if(coins < cost) return;
-                coins -= cost; updateStats(); updatePowerupsUI(); playTone("G4");
-
-                if(type === 'bomb') {
-                    const avail = "BCDFGHJKLMNPQRSTVWXYZ".split('').filter(c => !secretWord.includes(c) && !guessedLetters.includes(c));
-                    const toRemove = avail.sort(() => 0.5 - Math.random()).slice(0, 3);
-                    toRemove.forEach(c => { 
-                         if(gameMode==='online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: c, guessCount: (currentRoomData.guessCount||0)+1 }); 
-                         else processGuess(c);
-                    });
-                } else if (type === 'shield') {
-                    activeShield = true; $('shield-overlay').classList.remove('hidden');
-                } else if (type === 'freeze') {
-                    isFrozen = true; $(`pup-freeze`).classList.add('ring-4', 'ring-blue-300');
-                    setTimeout(() => { isFrozen = false; $(`pup-freeze`).classList.remove('ring-4', 'ring-blue-300'); }, 15000);
+                
+                if(gameMode === 'online') {
+                    if(isHost) { $('next-round-btn').classList.remove('hidden'); $('next-round-btn').innerText = (currentRound < totalRounds) ? "Next Round" : "Finish Match"; }
+                    else { $('next-round-btn').classList.add('hidden'); }
+                    $('replay-btn').classList.add('hidden'); // Hide play again in online match flow
+                } else {
+                    $('next-round-btn').classList.add('hidden');
+                    $('replay-btn').classList.remove('hidden');
                 }
             }
 
-            function activateVoice() {
-                if (!('webkitSpeechRecognition' in window)) { alert("Voice not supported"); return; }
-                const recognition = new webkitSpeechRecognition(); recognition.lang = 'en-US'; recognition.start();
-                $('pup-voice').classList.add('ring-4', 'ring-red-500');
-                recognition.onresult = (event) => {
-                    const text = event.results[event.results.length - 1][0].transcript.toUpperCase().trim();
-                    const letter = text.slice(-1); 
-                    if("BCDFGHJKLMNPQRSTVWXYZ".includes(letter)) handleGuess(letter);
-                };
-                recognition.onend = () => $('pup-voice').classList.remove('ring-4', 'ring-red-500');
+            // --- POWERUPS ---
+            function updatePowerupsUI() { ['bomb', 'shield', 'freeze'].forEach(p => { const btn = $(`pup-${p}`); const cost = COSTS[p]; btn.disabled = coins < cost; if(coins >= cost) btn.onclick = () => activatePowerup(p); else btn.onclick = null; }); $('pup-voice').onclick = () => activateVoice(); }
+            function activatePowerup(type) {
+                const cost = COSTS[type]; if(coins < cost) return; coins -= cost; updateStats(); updatePowerupsUI(); playTone("G4");
+                if(type === 'bomb') { const avail = "BCDFGHJKLMNPQRSTVWXYZ".split('').filter(c => !secretWord.includes(c) && !guessedLetters.includes(c)); const toRemove = avail.sort(() => 0.5 - Math.random()).slice(0, 3); toRemove.forEach(c => { if(gameMode==='online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: c, guessCount: Math.random() }); else processGuess(c); }); } 
+                else if (type === 'shield') { activeShield = true; $('shield-overlay').classList.remove('hidden'); } 
+                else if (type === 'freeze') { isFrozen = true; $(`pup-freeze`).classList.add('ring-4', 'ring-blue-300'); setTimeout(() => { isFrozen = false; $(`pup-freeze`).classList.remove('ring-4', 'ring-blue-300'); }, 15000); }
             }
+            function activateVoice() { if (!('webkitSpeechRecognition' in window)) { alert("Voice not supported"); return; } const recognition = new webkitSpeechRecognition(); recognition.lang = 'en-US'; recognition.start(); $('pup-voice').classList.add('ring-4', 'ring-red-500'); recognition.onresult = (event) => { const text = event.results[event.results.length - 1][0].transcript.toUpperCase().trim(); const letter = text.slice(-1); if("BCDFGHJKLMNPQRSTVWXYZ".includes(letter)) handleGuess(letter); }; recognition.onend = () => $('pup-voice').classList.remove('ring-4', 'ring-red-500'); }
 
-            function startDailyChallenge() {
-                const seed = new Date().toDateString(); let hash = 0; for(let i=0; i<seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
-                const allWords = [...WORDS.movies.medium, ...WORDS.cars.medium, ...WORDS.food.medium];
-                startGame(allWords[Math.abs(hash) % allWords.length], 'daily', 'daily');
-            }
-
+            function startDailyChallenge() { const seed = new Date().toDateString(); let hash = 0; for(let i=0; i<seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash); const allWords = [...WORDS.movies.medium, ...WORDS.cars.medium, ...WORDS.food.medium]; startGame(allWords[Math.abs(hash) % allWords.length], 'daily', 'daily'); }
             function validateWord(w) { if(w.length < 2 || !/[A-Z]/.test(w)) { alert("Invalid Word"); return false; } return true; }
-            function startTimer(seconds) {
-                clearInterval(timerInterval); roundEndTime = Date.now() + (seconds * 1000);
-                timerInterval = setInterval(() => {
-                    if(isFrozen) { roundEndTime += 1000; return; }
-                    const remain = roundEndTime - Date.now();
-                    if(remain <= 0) { clearInterval(timerInterval); endGame(false); return; }
-                    const m = Math.floor(remain/60000); const s = Math.floor((remain%60000)/1000);
-                    $('timer-display').innerText = `${m}:${s.toString().padStart(2,'0')}`;
-                }, 1000);
-            }
-            function createFloatingText(element, text) {
-                const rect = element.getBoundingClientRect();
-                const floatEl = document.createElement('div'); floatEl.className = 'floating-text'; floatEl.innerText = text;
-                floatEl.style.left = `${rect.left}px`; floatEl.style.top = `${rect.top}px`;
-                document.body.appendChild(floatEl); setTimeout(() => floatEl.remove(), 1000);
-            }
-            function resetBotUI() {
-                 document.querySelectorAll('.bot-cat-btn').forEach(x => x.classList.remove('bg-indigo-100', 'border-indigo-500'));
-                 document.querySelectorAll('.bot-diff-btn').forEach(x => x.classList.remove('ring-2', 'ring-offset-1'));
-                 $('custom-word-list').value = ''; botSettings = { cat: null, diff: null };
-            }
+            function startTimer(seconds) { clearInterval(timerInterval); roundEndTime = Date.now() + (seconds * 1000); timerInterval = setInterval(() => { if(isFrozen) { roundEndTime += 1000; return; } const remain = roundEndTime - Date.now(); if(remain <= 0) { clearInterval(timerInterval); endGame(false); return; } const m = Math.floor(remain/60000); const s = Math.floor((remain%60000)/1000); $('timer-display').innerText = `${m}:${s.toString().padStart(2,'0')}`; }, 1000); }
+            function createFloatingText(element, text) { const rect = element.getBoundingClientRect(); const floatEl = document.createElement('div'); floatEl.className = 'floating-text'; floatEl.innerText = text; floatEl.style.left = `${rect.left}px`; floatEl.style.top = `${rect.top}px`; document.body.appendChild(floatEl); setTimeout(() => floatEl.remove(), 1000); }
+            function resetBotUI() { document.querySelectorAll('.bot-cat-btn').forEach(x => x.classList.remove('bg-indigo-100', 'border-indigo-500')); document.querySelectorAll('.bot-diff-btn').forEach(x => x.classList.remove('ring-2', 'ring-offset-1')); $('custom-word-list').value = ''; botSettings = { cat: null, diff: null }; }
 
             // --- FIREBASE ONLINE LOGIC ---
             function initFirebase() { try { app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); onAuthStateChanged(auth, u => { if(u) userId = u.uid; else signInAnonymously(auth); }); } catch(e) { console.log("Offline mode"); } }
             
             async function createRoom() { 
                 const name = $('host-name').value || "Host"; 
-                const roomRef = await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames`), { 
-                    host: userId, hostName: name, status: 'waiting', guests: {}, wordSet: false, secretWord: ''
-                }); 
-                currentGameId = roomRef.id; isHost = true; isSpectator = false; enterWaitingRoom(currentGameId); 
+                const roomRef = await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames`), { host: userId, hostName: name, status: 'selection', guests: {} }); 
+                currentGameId = roomRef.id; isHost = true; isSpectator = false; 
+                showScreen('round-selection-screen'); // Go to round selection first
             }
 
             async function joinRoom() { 
                 const id = $('join-code').value.trim(); const name = $('join-name').value || "Guest"; 
                 if(!id) return alert("Please enter a Room Code");
                 currentGameId = id; isHost = false; isSpectator = false; 
-                try {
-                    const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, id);
-                    await updateDoc(gameRef, { status: 'setup', guest: userId, guestName: name });
-                    enterWaitingRoom(id);
-                } catch(e) { console.error(e); alert("Could not join room."); }
+                try { const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, id); await updateDoc(gameRef, { status: 'waiting_for_guest', guest: userId, guestName: name }); enterWaitingRoom(id); } catch(e) { console.error(e); alert("Could not join room."); }
             }
 
             function enterWaitingRoom(id) { 
@@ -851,57 +819,44 @@
                 if(roomUnsub) roomUnsub();
                 roomUnsub = onSnapshot(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), (snap) => { 
                     const d = snap.data(); if(!d) return; window.currentRoomData = d;
+                    totalRounds = d.totalRounds || 3; currentRound = d.currentRound || 1;
                     
-                    // Phase 1: Setup (Word Selection)
                     if(d.status === 'setup') {
-                        if(isHost) {
-                             // Host sets word
-                             showScreen('hot-seat-setup-screen');
-                             $('secret-word-title').innerText = "Set Secret Word";
-                             $('back-hot-seat-btn').classList.add('hidden'); // Can't go back in online
-                             gameMode = 'online';
+                        $('result-overlay').classList.add('hidden');
+                        // Determine Roles based on Round Number
+                        const isOddRound = currentRound % 2 !== 0;
+                        const amISetter = (isHost && isOddRound) || (!isHost && !isOddRound);
+
+                        if(amISetter) {
+                             showScreen('hot-seat-setup-screen'); $('secret-word-title').innerText = `Round ${currentRound}: Set Word`;
+                             $('back-hot-seat-btn').classList.add('hidden'); gameMode = 'online';
                         } else {
-                             // Guest waits
-                             showScreen('game-screen');
-                             $('keyboard').classList.add('hidden');
-                             $('waiting-badge').classList.remove('hidden');
-                             renderWord(); // Renders empty slots if word exists
+                             showScreen('game-screen'); $('keyboard').classList.add('hidden');
+                             $('waiting-badge').classList.remove('hidden'); $('waiting-badge').innerText = "Opponent Setting Word...";
+                             renderWord(); 
                         }
-                    } 
-                    // Phase 2: Playing
-                    else if(d.status === 'playing') {
-                        secretWord = d.secretWord;
-                        gameMode = 'online';
-                        if(!d.lastGuess && guessedLetters.length <= 5) { // First load
-                            startGame(secretWord, 'online', 'default');
-                            $('taunt-bar').classList.remove('hidden');
-                        } else {
-                             // Update State from Firestore
-                             // Check if new guess came in
-                             if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) {
-                                 processGuess(d.lastGuess);
-                             }
-                        }
+                    } else if(d.status === 'playing') {
+                        secretWord = d.secretWord; gameMode = 'online';
+                        if(!d.lastGuess && guessedLetters.length <= 5) { startGame(secretWord, 'online', 'default'); $('taunt-bar').classList.remove('hidden'); } 
+                        else { if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) processGuess(d.lastGuess); }
                         
-                        // Role Management
-                        if(isHost) {
+                        // Role Visibility
+                        const isOddRound = currentRound % 2 !== 0;
+                        const amIGuesser = (isHost && !isOddRound) || (!isHost && isOddRound);
+                        
+                        if(!amIGuesser) {
                             $('keyboard').classList.add('hidden');
-                             $('spectator-badge').classList.remove('hidden');
-                             $('spectator-badge').innerText = "HOST (WATCHING)";
+                            $('spectator-badge').classList.remove('hidden');
+                            $('spectator-badge').innerText = "SPECTATING (SETTER)";
                         } else {
                             $('keyboard').classList.remove('hidden');
-                             $('waiting-badge').classList.add('hidden');
+                            $('waiting-badge').classList.add('hidden');
                         }
                     }
                 }); 
             }
             
-            function setOnlineWord(w) {
-                updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { 
-                    status: 'playing', secretWord: w, wordSet: true
-                });
-            }
-
+            function setOnlineWord(w) { updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { status: 'playing', secretWord: w }); }
             document.querySelectorAll('.taunt-btn').forEach(b => b.onclick = () => { const msg = b.dataset.msg; createFloatingText($('game-container'), msg); playTone("C3", "8n"); });
 
         });
