@@ -113,32 +113,23 @@
         
         .lobby-tab.active { border-bottom: 3px solid var(--accent-primary); color: var(--accent-primary); background: rgba(0,0,0,0.05); }
         
-        .avatar-circle {
-            width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 32px; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer;
-        }
+        .avatar-circle { width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer; }
         .avatar-circle:hover { transform: scale(1.1); }
         
         .word-slot-revealed { color: var(--letter-color) !important; border-bottom-color: var(--letter-color) !important; }
         .word-slot-empty { border-bottom-color: var(--slot-border); color: transparent; }
 
         /* === CHAT STYLES === */
-        #chat-desktop {
-            position: fixed; top: 50%; right: 20px; transform: translateY(-50%);
-            width: 300px; height: 500px; z-index: 40;
-            display: none;
-            flex-direction: column;
-        }
-        #chat-desktop.active { display: flex; }
-
-        #chat-mobile {
-            position: fixed; bottom: 80px; right: 20px;
-            width: 280px; height: 350px; z-index: 50;
-            transform-origin: bottom right; transition: transform 0.3s ease, opacity 0.3s ease;
-        }
+        #chat-desktop { position: fixed; top: 50%; right: 20px; transform: translateY(-50%); width: 300px; height: 500px; z-index: 40; display: none; flex-direction: column; }
+        @media (min-width: 1024px) { #chat-desktop.active { display: flex; } }
+        #chat-mobile { position: fixed; bottom: 80px; right: 20px; width: 280px; height: 350px; z-index: 50; transform-origin: bottom right; transition: transform 0.3s ease, opacity 0.3s ease; }
         .chat-msg { padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 0.9rem; max-width: 85%; }
         .chat-msg.me { background: var(--accent-primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
         .chat-msg.them { background: rgba(0,0,0,0.05); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--glass-border); }
+
+        /* Players List in Lobby */
+        .player-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; background: rgba(0,0,0,0.03); margin-bottom: 5px; }
+        .player-avatar-small { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; color: white; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4" data-theme="candy">
@@ -280,10 +271,8 @@
 
             <!-- === ONLINE LOBBY === -->
             <div id="online-setup-screen" class="hidden w-full space-y-6">
-                <!-- Updated header with spacing to clear the top-right help button -->
                 <div class="flex justify-between items-center mt-8">
                     <h2 class="text-2xl font-bold">Online Lobby</h2>
-                    <!-- Fixed badge structure with div + proper gap/items-center -->
                     <div class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
                         <span class="text-xs font-bold uppercase tracking-wide">Multiplayer</span>
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -368,12 +357,13 @@
                 
                 <!-- Top Bar -->
                 <div class="w-full flex justify-between items-start mb-4 mt-12">
-                    <div class="text-left">
-                        <div class="text-xs font-bold opacity-60 uppercase">Wins</div>
-                        <div id="score-display" class="text-xl font-bold">P1: 0 - P2: 0</div>
-                        <div id="streak-container" class="text-[10px] font-bold text-orange-500 hidden">🔥 <span id="streak-count">0</span></div>
+                    <div class="text-left w-1/3">
+                        <div class="text-xs font-bold opacity-60 uppercase mb-1">Leaderboard</div>
+                        <div id="score-display" class="flex flex-col gap-1 text-sm">
+                            <!-- Dynamic -->
+                        </div>
                     </div>
-                    <div class="text-center flex flex-col items-center">
+                    <div class="text-center flex flex-col items-center w-1/3">
                         <div class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1 border border-yellow-200 shadow-sm">
                             <span>🪙</span><span id="coin-display">5</span>
                         </div>
@@ -381,7 +371,7 @@
                         <div id="spectator-badge" class="hidden bg-gray-800 text-white text-[10px] px-2 py-1 rounded mt-1 uppercase tracking-wide">Spectator</div>
                         <div id="waiting-badge" class="hidden bg-indigo-100 text-indigo-800 text-[10px] px-2 py-1 rounded mt-1 uppercase tracking-wide animate-pulse">Opponent Setting Word...</div>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right w-1/3">
                          <div class="text-xs font-bold opacity-60 uppercase">Time</div>
                          <div id="timer-display" class="text-xl font-mono font-bold text-red-500">02:30</div>
                     </div>
@@ -432,10 +422,7 @@
                  <div class="flex-1 overflow-y-auto flex flex-col gap-2 p-2" id="chat-messages-desktop"></div>
                  <form id="chat-form-desktop" class="flex gap-2 mt-2"><input type="text" id="chat-input-desktop" class="flex-1 rounded-lg p-2 text-sm" placeholder="Chat..."><button class="bg-indigo-500 text-white rounded-lg px-3 font-bold">></button></form>
             </div>
-            <!-- Added hidden class to button by default -->
             <button id="chat-toggle-btn" class="hidden lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg z-50 text-2xl">💬</button>
-            
-            <!-- Updated Chat Mobile Class to include flex but hidden class handles display -->
             <div id="chat-mobile" class="hidden flex flex-col glass-panel p-2">
                  <div class="flex-1 overflow-y-auto flex flex-col gap-2 p-2" id="chat-messages-mobile"></div>
                  <form id="chat-form-mobile" class="flex gap-2 mt-2"><input type="text" id="chat-input-mobile" class="flex-1 rounded-lg p-2 text-sm" placeholder="Chat..."><button class="bg-indigo-500 text-white rounded-lg px-3 font-bold">></button></form>
@@ -595,17 +582,8 @@
             customInput.addEventListener('input', (e) => { const val = parseInt(e.target.value); if (val && val > 0 && val <= 50) { totalRounds = val; startMatchBtn.classList.remove('hidden'); } else { startMatchBtn.classList.add('hidden'); } });
             $('confirm-rounds-btn').onclick = async () => {
                 if (!totalRounds || totalRounds < 1) return alert("Please select rounds!");
-                // Use SET to create with specific ID (the room code)
-                await setDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { 
-                    host: userId, 
-                    hostName: $('host-name').value || "Host",
-                    totalRounds, 
-                    currentRound: 1, 
-                    status: 'waiting_for_guest', 
-                    guests: {},
-                    roomCode: currentGameId, // Store code in doc too
-                    chatMessages: [] // Init chat array
-                });
+                // Update Firebase and start
+                await updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { totalRounds, currentRound: 1, status: 'waiting_for_guest' });
                 enterWaitingRoom(currentGameId);
             };
 
@@ -613,7 +591,9 @@
             $('settings-resume-btn').onclick = () => $('settings-modal').classList.add('hidden');
             const fullReset = () => { setTheme('default'); location.reload(); };
             $('settings-quit-btn').onclick = fullReset;
-            $('settings-change-difficulty-btn').onclick = () => { $('settings-modal').classList.add('hidden'); setTheme('default'); resetBotUI(); showScreen('bot-setup-screen'); };
+            if($('settings-change-difficulty-btn')) {
+                 $('settings-change-difficulty-btn').onclick = () => { $('settings-modal').classList.add('hidden'); setTheme('default'); resetBotUI(); showScreen('bot-setup-screen'); };
+            }
 
             // Chat
             $('chat-toggle-btn').onclick = () => $('chat-mobile').classList.toggle('hidden');
@@ -655,42 +635,160 @@
             };
             $('menu-btn').onclick = fullReset;
 
+            // --- GAMEPLAY ---
             function setTheme(category) { document.body.setAttribute('data-theme', THEME_MAP[category] || 'candy'); }
+
             function startGame(word, mode, category = 'default') {
                 secretWord = word.toUpperCase(); gameMode = mode; setTheme(category);
                 guessedLetters = ['A','E','I','O','U']; wrongGuesses = 0; streak = 0; activeShield = false; isFrozen = false;
-                showScreen('game-screen'); $('result-overlay').classList.add('hidden'); $('shield-overlay').classList.add('hidden');
-                $('settings-change-difficulty-btn').classList.toggle('hidden', mode !== 'bot');
-                $('round-display').innerText = `Round ${currentRound} / ${totalRounds}`; updateStats();
+                
+                showScreen('game-screen');
+                $('result-overlay').classList.add('hidden'); $('shield-overlay').classList.add('hidden');
+                
+                const changeDiffBtn = $('settings-change-difficulty-btn');
+                if(changeDiffBtn) changeDiffBtn.classList.toggle('hidden', mode !== 'bot');
+                
+                $('round-display').innerText = `Round ${currentRound} / ${totalRounds}`;
+                
+                // Update Stats will set the names now
+                updateStats();
+                
                 if(isSpectator) { $('keyboard').classList.add('hidden'); $('powerups-bar').classList.add('hidden'); $('spectator-msg').classList.remove('hidden'); $('spectator-badge').classList.remove('hidden'); } 
                 else { $('keyboard').classList.remove('hidden'); $('powerups-bar').classList.remove('hidden'); $('spectator-msg').classList.add('hidden'); $('spectator-badge').classList.add('hidden'); }
-                renderWord(); renderKeyboard(); renderHangman(); updatePowerupsUI(); if(word) startTimer(150);
+
+                renderWord(); renderKeyboard(); renderHangman(); updatePowerupsUI();
+                if(word) startTimer(150);
             }
-            function renderWord() { const container = $('word-display'); container.innerHTML = ''; if(!secretWord) return; secretWord.split('').forEach(char => { const slot = document.createElement('div'); slot.className = `w-10 h-14 flex items-end justify-center text-3xl font-bold border-b-4 mx-1 ${guessedLetters.includes(char) ? 'word-slot-revealed' : 'word-slot-empty'}`; if (char === ' ') { slot.className = 'w-6'; slot.innerHTML = '&nbsp;'; } else if (guessedLetters.includes(char)) { slot.innerText = char; } container.appendChild(slot); }); }
-            function renderKeyboard() { const kb = $('keyboard'); kb.innerHTML = ''; "BCDFGHJKLMNPQRSTVWXYZ".split('').forEach(char => { const btn = document.createElement('button'); btn.innerText = char; btn.className = `keyboard-button w-10 h-12 rounded-lg text-lg font-bold transition transform active:scale-95`; btn.id = `key-${char}`; if(guessedLetters.includes(char)) { btn.disabled = true; btn.classList.add(secretWord.includes(char) ? 'correct-guess' : 'wrong-guess'); } btn.onclick = () => handleGuess(char); kb.appendChild(btn); }); }
-            function handleGuess(char) { if(guessedLetters.includes(char) || wrongGuesses >= maxWrong) return; if(gameMode === 'online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: char, guessCount: Math.random() }); else processGuess(char); }
-            function processGuess(char) { if(guessedLetters.includes(char)) return; guessedLetters.push(char); const btn = $(`key-${char}`); if(btn) btn.disabled = true; if (secretWord.includes(char)) { if(btn) btn.classList.add('correct-guess'); streak++; coins += 3; playTone("C5"); if(btn) createFloatingText(btn, `+3c`); if(streak >= 3 && btn) btn.classList.add('on-fire'); checkWin(); } else { if (activeShield) { activeShield = false; $('shield-overlay').classList.add('hidden'); if(btn) createFloatingText(btn, "BLOCKED!"); playTone("A3"); } else { if(btn) btn.classList.add('wrong-guess'); wrongGuesses++; streak = 0; playTone("E2"); $('game-container').classList.add('shake-effect'); setTimeout(()=>$('game-container').classList.remove('shake-effect'), 300); } checkLoss(); } renderWord(); renderHangman(); updateStats(); updatePowerupsUI(); }
+
+            function renderWord() {
+                const container = $('word-display'); container.innerHTML = '';
+                if(!secretWord) return;
+                secretWord.split('').forEach(char => {
+                    const slot = document.createElement('div');
+                    slot.className = `w-10 h-14 flex items-end justify-center text-3xl font-bold border-b-4 mx-1 ${guessedLetters.includes(char) ? 'word-slot-revealed' : 'word-slot-empty'}`;
+                    if (char === ' ') { slot.className = 'w-6'; slot.innerHTML = '&nbsp;'; } else if (guessedLetters.includes(char)) { slot.innerText = char; }
+                    container.appendChild(slot);
+                });
+            }
+
+            function renderKeyboard() {
+                const kb = $('keyboard'); kb.innerHTML = '';
+                "BCDFGHJKLMNPQRSTVWXYZ".split('').forEach(char => {
+                    const btn = document.createElement('button'); btn.innerText = char; btn.className = `keyboard-button w-10 h-12 rounded-lg text-lg font-bold transition transform active:scale-95`; btn.id = `key-${char}`;
+                    if(guessedLetters.includes(char)) { btn.disabled = true; btn.classList.add(secretWord.includes(char) ? 'correct-guess' : 'wrong-guess'); }
+                    btn.onclick = () => handleGuess(char); kb.appendChild(btn);
+                });
+            }
+
+            function handleGuess(char) {
+                if(guessedLetters.includes(char) || wrongGuesses >= maxWrong) return;
+                if(gameMode === 'online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: char, guessCount: Math.random() });
+                else processGuess(char);
+            }
+
+            function processGuess(char) {
+                if(guessedLetters.includes(char)) return;
+                guessedLetters.push(char);
+                const btn = $(`key-${char}`); if(btn) btn.disabled = true;
+                if (secretWord.includes(char)) {
+                    if(btn) btn.classList.add('correct-guess'); streak++; coins += 3; playTone("C5"); if(btn) createFloatingText(btn, `+3c`);
+                    if(streak >= 3 && btn) btn.classList.add('on-fire'); checkWin();
+                } else {
+                    if (activeShield) { activeShield = false; $('shield-overlay').classList.add('hidden'); if(btn) createFloatingText(btn, "BLOCKED!"); playTone("A3"); } 
+                    else { if(btn) btn.classList.add('wrong-guess'); wrongGuesses++; streak = 0; playTone("E2"); $('game-container').classList.add('shake-effect'); setTimeout(()=>$('game-container').classList.remove('shake-effect'), 300); }
+                    checkLoss();
+                }
+                renderWord(); renderHangman(); updateStats(); updatePowerupsUI();
+            }
+
             function renderHangman() { ['part-head','part-body','part-arm-l','part-arm-r','part-leg-l','part-leg-r'].forEach((id, idx) => $(id).style.visibility = idx < wrongGuesses ? 'visible' : 'hidden'); }
+            
+            // UPDATED STATS LOGIC
             function updateStats() { 
-                let p1 = "P1", p2 = "P2";
-                if (gameMode === 'online' && window.currentRoomData) { p1 = window.currentRoomData.hostName || "Host"; p2 = window.currentRoomData.guestName || "Guest"; } 
-                else if (gameMode === 'bot') { p1 = "You"; p2 = "Bot"; }
-                $('score-display').innerText = `${p1}: ${p1Score} - ${p2}: ${p2Score}`; $('coin-display').innerText = coins; 
+                let p1Name = "P1", p2Name = "P2";
+                if (gameMode === 'online' && window.currentRoomData) { 
+                    p1Name = window.currentRoomData.hostName || "Host"; 
+                    p2Name = window.currentRoomData.guestName || "Guest"; 
+                } else if (gameMode === 'bot') { 
+                    p1Name = "You"; p2Name = "Bot"; 
+                }
+
+                const players = [
+                    { name: p1Name, score: p1Score },
+                    { name: p2Name, score: p2Score }
+                ];
+                
+                // Sort: Higher score first
+                players.sort((a, b) => b.score - a.score);
+
+                $('score-display').innerHTML = `
+                    <div class="flex flex-col items-start">
+                        <div class="text-lg font-bold text-indigo-600">
+                            ${players[0].name}: ${players[0].score}
+                            ${players[0].score > players[1].score ? '👑' : ''}
+                        </div>
+                        <div class="text-sm font-semibold text-slate-500">
+                            ${players[1].name}: ${players[1].score}
+                        </div>
+                    </div>
+                `;
+                $('coin-display').innerText = coins; 
+                
+                if(streak > 1) { $('streak-container').classList.remove('hidden'); $('streak-count').innerText = streak; }
+                else $('streak-container').classList.add('hidden');
             }
+
             function checkWin() { if (secretWord.split('').every(c => c === ' ' || guessedLetters.includes(c))) endGame(true); }
             function checkLoss() { if (wrongGuesses >= maxWrong) endGame(false); }
-            async function fetchDefinition(word) { try { const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`); const data = await res.json(); const def = data[0]?.meanings[0]?.definitions[0]?.definition; $('word-definition').classList.remove('hidden'); $('def-text').innerText = def ? `"${def}"` : `"A mystery word."`; } catch(e) { $('word-definition').classList.add('hidden'); } }
-            function endGame(win) {
-                clearInterval(timerInterval); const overlay = $('result-overlay'); overlay.classList.remove('hidden'); overlay.classList.add('flex'); const title = $('result-title'); title.innerText = win ? "VICTORY!" : "GAME OVER"; title.className = `text-6xl font-extrabold mb-4 drop-shadow-lg ${win ? 'text-emerald-400' : 'text-rose-500'}`; $('result-word').innerText = `Word: ${secretWord}`;
-                if(win) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); playTone("C4", "2n"); coins += 7; } else { playTone("C2", "2n"); }
-                const isOdd = currentRound % 2 !== 0;
-                if (win) { if (isOdd) p2Score++; else p1Score++; } else { if (isOdd) p1Score++; else p2Score++; }
-                updateStats(); fetchDefinition(secretWord);
-                if(gameMode === 'online') {
-                    if(isHost) { $('next-round-btn').classList.remove('hidden'); $('next-round-btn').innerText = (currentRound < totalRounds) ? "Next Round" : "Finish Match"; } else { $('next-round-btn').classList.add('hidden'); }
-                    $('replay-btn').classList.add('hidden'); 
-                } else { $('next-round-btn').classList.add('hidden'); $('replay-btn').classList.remove('hidden'); }
+
+            async function fetchDefinition(word) {
+                try { const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`); const data = await res.json(); const def = data[0]?.meanings[0]?.definitions[0]?.definition; $('word-definition').classList.remove('hidden'); $('def-text').innerText = def ? `"${def}"` : `"A mystery word."`; } catch(e) { $('word-definition').classList.add('hidden'); }
             }
+
+            function endGame(win) {
+                clearInterval(timerInterval);
+                const overlay = $('result-overlay'); overlay.classList.remove('hidden'); overlay.classList.add('flex');
+                const title = $('result-title');
+                title.innerText = win ? "VICTORY!" : "GAME OVER";
+                title.className = `text-6xl font-extrabold mb-4 drop-shadow-lg ${win ? 'text-emerald-400' : 'text-rose-500'}`;
+                $('result-word').innerText = `Word: ${secretWord}`;
+                
+                // Score Logic (Universal)
+                if(win) {
+                     confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); playTone("C4", "2n"); coins += 7;
+                } else {
+                     playTone("C2", "2n");
+                }
+                
+                // Determine who gets the point
+                // Round 1 (Odd): Host Set, Guest Guesses.
+                // Round 2 (Even): Guest Set, Host Guesses.
+                const isOdd = currentRound % 2 !== 0;
+                
+                if (win) {
+                    // Guesser won
+                    if (isOdd) p2Score++; // Guest guessed right
+                    else p1Score++;       // Host guessed right
+                } else {
+                    // Setter won
+                    if (isOdd) p1Score++; // Host set a hard word
+                    else p2Score++;       // Guest set a hard word
+                }
+
+                updateStats();
+                fetchDefinition(secretWord);
+                
+                if(gameMode === 'online') {
+                    if(isHost) { $('next-round-btn').classList.remove('hidden'); $('next-round-btn').innerText = (currentRound < totalRounds) ? "Next Round" : "Finish Match"; }
+                    else { $('next-round-btn').classList.add('hidden'); }
+                    $('replay-btn').classList.add('hidden'); // Hide play again in online match flow
+                } else {
+                    $('next-round-btn').classList.add('hidden');
+                    $('replay-btn').classList.remove('hidden');
+                }
+            }
+
+            // --- POWERUPS ---
             function updatePowerupsUI() { ['bomb', 'shield', 'freeze'].forEach(p => { const btn = $(`pup-${p}`); const cost = COSTS[p]; btn.disabled = coins < cost; if(coins >= cost) btn.onclick = () => activatePowerup(p); else btn.onclick = null; }); $('pup-voice').onclick = () => activateVoice(); }
             function activatePowerup(type) {
                 const cost = COSTS[type]; if(coins < cost) return; coins -= cost; updateStats(); updatePowerupsUI(); playTone("G4");
@@ -699,44 +797,105 @@
                 else if (type === 'freeze') { isFrozen = true; $(`pup-freeze`).classList.add('ring-4', 'ring-blue-300'); setTimeout(() => { isFrozen = false; $(`pup-freeze`).classList.remove('ring-4', 'ring-blue-300'); }, 15000); }
             }
             function activateVoice() { if (!('webkitSpeechRecognition' in window)) { alert("Voice not supported"); return; } const recognition = new webkitSpeechRecognition(); recognition.lang = 'en-US'; recognition.start(); $('pup-voice').classList.add('ring-4', 'ring-red-500'); recognition.onresult = (event) => { const text = event.results[event.results.length - 1][0].transcript.toUpperCase().trim(); const letter = text.slice(-1); if("BCDFGHJKLMNPQRSTVWXYZ".includes(letter)) handleGuess(letter); }; recognition.onend = () => $('pup-voice').classList.remove('ring-4', 'ring-red-500'); }
+
             function startDailyChallenge() { const seed = new Date().toDateString(); let hash = 0; for(let i=0; i<seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash); const allWords = [...WORDS.movies.medium, ...WORDS.cars.medium, ...WORDS.food.medium]; startGame(allWords[Math.abs(hash) % allWords.length], 'daily', 'daily'); }
             function validateWord(w) { if(w.length < 2 || !/[A-Z]/.test(w)) { alert("Invalid Word"); return false; } return true; }
             function startTimer(seconds) { clearInterval(timerInterval); roundEndTime = Date.now() + (seconds * 1000); timerInterval = setInterval(() => { if(isFrozen) { roundEndTime += 1000; return; } const remain = roundEndTime - Date.now(); if(remain <= 0) { clearInterval(timerInterval); endGame(false); return; } const m = Math.floor(remain/60000); const s = Math.floor((remain%60000)/1000); $('timer-display').innerText = `${m}:${s.toString().padStart(2,'0')}`; }, 1000); }
             function createFloatingText(element, text) { const rect = element.getBoundingClientRect(); const floatEl = document.createElement('div'); floatEl.className = 'floating-text'; floatEl.innerText = text; floatEl.style.left = `${rect.left}px`; floatEl.style.top = `${rect.top}px`; document.body.appendChild(floatEl); setTimeout(() => floatEl.remove(), 1000); }
             function resetBotUI() { document.querySelectorAll('.bot-cat-btn').forEach(x => x.classList.remove('bg-indigo-100', 'border-indigo-500')); document.querySelectorAll('.bot-diff-btn').forEach(x => x.classList.remove('ring-2', 'ring-offset-1')); $('custom-word-list').value = ''; botSettings = { cat: null, diff: null }; }
+
+            // --- FIREBASE ONLINE LOGIC ---
             function initFirebase() { try { app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); onAuthStateChanged(auth, u => { if(u) userId = u.uid; else signInAnonymously(auth); }); } catch(e) { console.log("Offline mode"); } }
-            async function createRoom() { startAudio(); const name = $('host-name').value || "Host"; const code = Math.floor(100000 + Math.random() * 900000).toString(); currentGameId = code; isHost = true; isSpectator = false; showScreen('round-selection-screen'); }
-            async function joinRoom() { startAudio(); const code = $('join-code').value.trim(); const name = $('join-name').value || "Guest"; if(!code) return alert("Enter Code"); 
-                currentGameId = code; isHost = false; isSpectator = false;
-                try { 
-                    const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, code);
-                    const snap = await getDoc(gameRef);
-                    if(!snap.exists()) return alert("Room not found");
-                    const data = snap.data();
-                    if(data.guest) { isSpectator = true; await updateDoc(gameRef, { [`guests.${userId}`]: name }); }
-                    else { await updateDoc(gameRef, { guest: userId, guestName: name, status: 'waiting_for_guest' }); }
-                    enterWaitingRoom(currentGameId);
-                } catch(e) { console.error(e); alert("Could not join room."); }
+            
+            async function createRoom() { 
+                const name = $('host-name').value || "Host"; 
+                const roomRef = await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames`), { host: userId, hostName: name, status: 'selection', guests: {} }); 
+                currentGameId = roomRef.id; isHost = true; isSpectator = false; 
+                showScreen('round-selection-screen'); // Go to round selection first
             }
+
+            async function joinRoom() { 
+                const id = $('join-code').value.trim(); const name = $('join-name').value || "Guest"; 
+                if(!id) return alert("Please enter a Room Code");
+                currentGameId = id; isHost = false; isSpectator = false; 
+                try { const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, id); await updateDoc(gameRef, { status: 'waiting_for_guest', guest: userId, guestName: name }); enterWaitingRoom(id); } catch(e) { console.error(e); alert("Could not join room."); }
+            }
+
             function enterWaitingRoom(id) { 
                 showScreen('waiting-screen'); $('room-code-display').value = id; 
-                onSnapshot(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), (snap) => { 
+                if(roomUnsub) roomUnsub();
+                roomUnsub = onSnapshot(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), (snap) => { 
                     const d = snap.data(); if(!d) return; window.currentRoomData = d;
                     totalRounds = d.totalRounds || 3; currentRound = d.currentRound || 1;
                     
-                    if(d.status === 'waiting_for_guest' && d.guest && isHost) updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), { status: 'setup' });
+                    // === FIXED LOGIC HERE ===
+                    // 1. Transition from Waiting -> Setup (Host triggers this when Guest appears)
+                    if(d.status === 'waiting_for_guest' && d.guest && isHost) {
+                        updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), { status: 'setup' });
+                    }
 
+                    // 2. Handle Setup Phase (Word Selection)
                     if(d.status === 'setup') {
                         $('result-overlay').classList.add('hidden');
-                        const isOddRound = currentRound % 2 !== 0; const amISetter = (isHost && isOddRound) || (!isHost && !isOddRound);
-                        if(amISetter) { showScreen('hot-seat-setup-screen'); $('secret-word-title').innerText = `Round ${currentRound}: Set Word`; $('back-hot-seat-btn').classList.add('hidden'); gameMode = 'online'; } 
-                        else { showScreen('game-screen'); $('keyboard').classList.add('hidden'); $('waiting-badge').classList.remove('hidden'); $('waiting-badge').innerText = "Opponent Setting Word..."; renderWord(); }
-                    } else if(d.status === 'playing') {
-                        secretWord = d.secretWord; gameMode = 'online';
-                        if((!d.lastGuess && guessedLetters.length <= 5) || secretWord !== window.lastSecretWord) { window.lastSecretWord = secretWord; startGame(secretWord, 'online', 'default'); $('taunt-bar').classList.remove('hidden'); } 
-                        else { if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) processGuess(d.lastGuess); }
-                        const isOddRound = currentRound % 2 !== 0; const amIGuesser = (isHost && !isOddRound) || (!isHost && isOddRound);
-                        if(!amIGuesser || isSpectator) { $('keyboard').classList.add('hidden'); $('spectator-badge').classList.remove('hidden'); $('spectator-badge').innerText = isSpectator ? "SPECTATOR" : "WATCHING (SETTER)"; } else { $('keyboard').classList.remove('hidden'); $('waiting-badge').classList.add('hidden'); $('spectator-badge').classList.add('hidden'); }
+                        // If Spectator, just show game screen and wait
+                        if(isSpectator) {
+                             showScreen('game-screen');
+                             $('keyboard').classList.add('hidden');
+                             $('waiting-badge').classList.remove('hidden');
+                             $('waiting-badge').innerText = "Host Setting Word...";
+                             renderWord(); // Empty slots
+                             return;
+                        }
+
+                        // Determine Roles based on Round Number
+                        // Round 1, 3, 5: Host Sets, Guest Guesses
+                        // Round 2, 4, 6: Guest Sets, Host Guesses
+                        const isOddRound = currentRound % 2 !== 0;
+                        const amISetter = (isHost && isOddRound) || (!isHost && !isOddRound);
+
+                        if(amISetter) {
+                             showScreen('hot-seat-setup-screen'); 
+                             $('secret-word-title').innerText = `Round ${currentRound}: Set Word`;
+                             $('back-hot-seat-btn').classList.add('hidden'); 
+                             gameMode = 'online';
+                        } else {
+                             showScreen('game-screen'); 
+                             $('keyboard').classList.add('hidden');
+                             $('waiting-badge').classList.remove('hidden'); 
+                             $('waiting-badge').innerText = "Opponent Setting Word...";
+                             renderWord(); 
+                        }
+                    } 
+                    // 3. Handle Playing Phase
+                    else if(d.status === 'playing') {
+                        secretWord = d.secretWord; 
+                        gameMode = 'online';
+                        
+                        // Initial Load or Re-sync
+                        if((!d.lastGuess && guessedLetters.length <= 5) || secretWord !== window.lastSecretWord) { 
+                            window.lastSecretWord = secretWord; // Prevent re-init loop
+                            startGame(secretWord, 'online', 'default'); 
+                            $('taunt-bar').classList.remove('hidden'); 
+                        } 
+                        else { 
+                            // Process incoming guesses
+                            if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) processGuess(d.lastGuess); 
+                        }
+                        
+                        // Determine Guesser Role
+                        const isOddRound = currentRound % 2 !== 0;
+                        const amIGuesser = (isHost && !isOddRound) || (!isHost && isOddRound);
+                        
+                        // If I am NOT the guesser (Setter or Spectator), hide controls
+                        if(!amIGuesser || isSpectator) {
+                            $('keyboard').classList.add('hidden');
+                            $('spectator-badge').classList.remove('hidden');
+                            $('spectator-badge').innerText = isSpectator ? "SPECTATOR" : "WATCHING (SETTER)";
+                        } else {
+                            $('keyboard').classList.remove('hidden');
+                            $('waiting-badge').classList.add('hidden');
+                            $('spectator-badge').classList.add('hidden');
+                        }
                         
                         // Chat Logic in Listener
                         const box = document.getElementById('chat-messages-desktop'); const boxM = document.getElementById('chat-messages-mobile');
@@ -749,10 +908,20 @@
                             box.scrollTop = box.scrollHeight; boxM.scrollTop = boxM.scrollHeight;
                         }
                     }
-                });
+                }); 
             }
-            function setOnlineWord(w) { updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { status: 'playing', secretWord: w, lastGuess: null, guessCount: 0 }); }
+            
+            function setOnlineWord(w) { 
+                updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { 
+                    status: 'playing', 
+                    secretWord: w,
+                    lastGuess: null, // Reset guesses for new round
+                    guessCount: 0
+                }); 
+            }
+            
             document.querySelectorAll('.taunt-btn').forEach(b => b.onclick = () => { const msg = b.dataset.msg; createFloatingText($('game-container'), msg); playTone("C3", "8n"); });
+
         });
     </script>
 </body>
