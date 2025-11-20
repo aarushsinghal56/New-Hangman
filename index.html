@@ -119,15 +119,22 @@
         .word-slot-revealed { color: var(--letter-color) !important; border-bottom-color: var(--letter-color) !important; }
         .word-slot-empty { border-bottom-color: var(--slot-border); color: transparent; }
 
-        /* === CHAT STYLES === */
-        #chat-desktop { position: fixed; top: 50%; right: 20px; transform: translateY(-50%); width: 300px; height: 500px; z-index: 40; display: none; flex-direction: column; }
-        @media (min-width: 1024px) { #chat-desktop.active { display: flex; } }
-        #chat-mobile { position: fixed; bottom: 80px; right: 20px; width: 280px; height: 350px; z-index: 50; transform-origin: bottom right; transition: transform 0.3s ease, opacity 0.3s ease; }
-        .chat-msg { padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 0.9rem; max-width: 85%; }
+        /* === FIXED CHAT STYLES === */
+        #chat-container {
+            position: fixed; bottom: 20px; right: 20px;
+            width: 300px; height: 400px; z-index: 50;
+            display: flex; flex-direction: column;
+            background: var(--card-bg); border: 1px solid var(--glass-border);
+            border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        #chat-container.minimized { height: 50px; overflow: hidden; }
+        #chat-container.hidden { display: none; }
+        
+        .chat-msg { padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 0.9rem; max-width: 85%; word-break: break-word; }
         .chat-msg.me { background: var(--accent-primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
         .chat-msg.them { background: rgba(0,0,0,0.05); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--glass-border); }
-
-        /* Players List in Lobby */
+        
         .player-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; background: rgba(0,0,0,0.03); margin-bottom: 5px; }
         .player-avatar-small { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 16px; color: white; }
     </style>
@@ -292,7 +299,7 @@
                                 <button id="host-avatar-color" class="absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow text-xs hover:scale-110 transition">🎨</button>
                                 <button id="host-avatar-face" class="absolute -bottom-2 -left-2 bg-white rounded-full p-1.5 shadow text-xs hover:scale-110 transition">😀</button>
                             </div>
-                            <input id="host-name" type="text" class="w-full p-3 rounded-full text-center text-sm font-bold bg-slate-50" placeholder="Your Name">
+                            <input id="host-name" type="text" class="w-full p-3 rounded-full text-center text-sm font-bold bg-slate-50" placeholder="Your Name" autocomplete="off">
                             <button id="create-room-btn" class="neon-btn w-full py-3 rounded-full font-bold">Create Room</button>
                         </div>
                         <!-- Join -->
@@ -302,8 +309,8 @@
                                 <button id="join-avatar-color" class="absolute -bottom-2 -right-2 bg-white rounded-full p-1.5 shadow text-xs hover:scale-110 transition">🎨</button>
                                 <button id="join-avatar-face" class="absolute -bottom-2 -left-2 bg-white rounded-full p-1.5 shadow text-xs hover:scale-110 transition">😀</button>
                             </div>
-                            <input id="join-name" type="text" class="w-full p-3 rounded-full text-center text-sm font-bold bg-slate-50" placeholder="Your Name">
-                            <input id="join-code" type="text" class="w-full p-3 rounded-full text-center text-sm font-bold bg-slate-50" placeholder="Room Code (6-digit)">
+                            <input id="join-name" type="text" class="w-full p-3 rounded-full text-center text-sm font-bold bg-slate-50" placeholder="Your Name" autocomplete="off">
+                            <input id="join-code" type="text" class="w-full p-3 rounded-full text-center text-sm font-bold bg-slate-50" placeholder="Room Code (6-digit)" autocomplete="off">
                             <button id="join-room-btn" class="neon-btn w-full py-3 rounded-full font-bold" style="--accent-primary: #10b981;">Join Room</button>
                         </div>
                     </div>
@@ -315,7 +322,6 @@
              <div id="round-selection-screen" class="hidden w-full text-center space-y-6">
                 <h2 class="text-3xl font-bold">Match Settings</h2>
                 <p class="opacity-70">Select Match Duration</p>
-                
                 <div class="grid gap-3 max-w-xs mx-auto">
                     <button class="round-opt-btn bg-white p-4 rounded-xl border hover:border-indigo-500 shadow font-bold text-lg transition transform hover:scale-105" data-type="preset" data-rounds="3">
                         ⚡ Small Match <span class="block text-sm font-normal opacity-60">(3 Rounds)</span>
@@ -327,13 +333,10 @@
                         ⚙️ Custom <span class="block text-sm font-normal opacity-60">(Manual)</span>
                     </button>
                 </div>
-
-                <!-- Custom Input Field -->
                 <div id="custom-round-input-container" class="hidden max-w-xs mx-auto bg-white p-4 rounded-xl border shadow-sm animate-fade-in">
                     <label class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 block">Enter Rounds (1-20)</label>
                     <input type="number" id="custom-rounds-input" class="w-full p-3 rounded-lg border-2 border-indigo-100 text-center text-2xl font-bold text-indigo-600 focus:border-indigo-500 outline-none" min="1" max="20" placeholder="#">
                 </div>
-
                 <button id="confirm-rounds-btn" class="neon-btn w-full py-3 rounded-xl font-bold text-lg hidden">Start Match</button>
             </div>
 
@@ -343,7 +346,7 @@
                 <div class="bg-white p-4 rounded-xl shadow-sm border">
                     <p class="text-xs uppercase font-bold text-gray-400 mb-1">Share Code</p>
                     <div class="flex gap-2">
-                        <input id="room-code-display" readonly class="flex-1 text-center font-mono text-lg bg-slate-100 rounded border-none" value="...">
+                        <input id="room-code-display" readonly class="flex-1 text-center font-mono text-xl font-bold text-indigo-600 bg-slate-100 rounded border-none" value="...">
                         <button id="copy-code-btn" class="bg-indigo-500 text-white px-3 rounded font-bold">Copy</button>
                     </div>
                 </div>
@@ -359,7 +362,8 @@
                 <div class="w-full flex justify-between items-start mb-4 mt-12">
                     <div class="text-left w-1/3">
                         <div class="text-xs font-bold opacity-60 uppercase mb-1">Leaderboard</div>
-                        <div id="score-display" class="flex flex-col gap-1 text-sm">
+                        <!-- UPDATED SCORE DISPLAY -->
+                        <div id="score-display" class="flex flex-col gap-2 text-sm">
                             <!-- Dynamic -->
                         </div>
                     </div>
@@ -417,16 +421,26 @@
                 </div>
             </div>
 
-            <!-- === CHAT WINDOWS === -->
-            <div id="chat-desktop" class="glass-panel p-2">
-                 <div class="flex-1 overflow-y-auto flex flex-col gap-2 p-2" id="chat-messages-desktop"></div>
-                 <form id="chat-form-desktop" class="flex gap-2 mt-2"><input type="text" id="chat-input-desktop" class="flex-1 rounded-lg p-2 text-sm" placeholder="Chat..."><button class="bg-indigo-500 text-white rounded-lg px-3 font-bold">></button></form>
+            <!-- === UNIFIED CHAT BOX === -->
+            <!-- Default hidden, controlled via toggle button -->
+            <div id="chat-container" class="hidden">
+                <div class="flex justify-between items-center p-3 bg-indigo-600 text-white rounded-t-lg cursor-pointer" id="chat-header">
+                    <h3 class="font-bold text-sm">Chat</h3>
+                    <div class="flex gap-2">
+                         <button id="chat-minimize-btn" class="hover:text-gray-200 font-bold text-lg leading-none">_</button>
+                    </div>
+                </div>
+                 <div class="flex-1 overflow-y-auto flex flex-col gap-2 p-3 bg-gray-50" id="chat-messages"></div>
+                 <form id="chat-form" class="flex gap-2 p-2 border-t bg-white rounded-b-lg">
+                     <input type="text" id="chat-input" class="flex-1 rounded-lg border p-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Type..." autocomplete="off">
+                     <button class="bg-indigo-500 text-white rounded-lg px-3 font-bold text-sm hover:bg-indigo-600">></button>
+                 </form>
             </div>
-            <button id="chat-toggle-btn" class="hidden lg:hidden fixed bottom-6 right-6 w-14 h-14 bg-indigo-600 text-white rounded-full shadow-lg z-50 text-2xl">💬</button>
-            <div id="chat-mobile" class="hidden flex flex-col glass-panel p-2">
-                 <div class="flex-1 overflow-y-auto flex flex-col gap-2 p-2" id="chat-messages-mobile"></div>
-                 <form id="chat-form-mobile" class="flex gap-2 mt-2"><input type="text" id="chat-input-mobile" class="flex-1 rounded-lg p-2 text-sm" placeholder="Chat..."><button class="bg-indigo-500 text-white rounded-lg px-3 font-bold">></button></form>
-            </div>
+            
+            <!-- Toggle Button -->
+            <button id="chat-toggle-btn" class="hidden fixed bottom-6 right-6 w-12 h-12 bg-indigo-600 text-white rounded-full shadow-lg z-50 flex items-center justify-center hover:scale-110 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+            </button>
 
             <!-- === RESULT OVERLAY === -->
             <div id="result-overlay" class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-black/80 backdrop-blur text-white hidden rounded-2rem p-6 text-center">
@@ -439,7 +453,6 @@
                 </div>
                 <div id="word-definition" class="mt-6 p-4 bg-white/10 rounded-lg text-sm max-w-xs hidden"><p class="italic opacity-80" id="def-text">Fetching definition...</p></div>
             </div>
-
         </div>
     </main>
 
@@ -508,18 +521,14 @@
                 screens.forEach(s => $(s).classList.add('hidden'));
                 $(screenId).classList.remove('hidden');
                 $('settings-btn').classList.toggle('hidden', screenId !== 'game-screen');
-                $('chat-toggle-btn').classList.toggle('hidden', screenId !== 'game-screen');
                 
-                // Toggle Chat: Show on Desktop if game-screen, Hide otherwise
-                const chatDesk = $('chat-desktop');
-                if(screenId === 'game-screen') {
-                    chatDesk.classList.add('active'); // Show flex
+                // Handle Chat Visibility
+                if(screenId === 'game-screen' && gameMode === 'online') {
+                    $('chat-toggle-btn').classList.remove('hidden');
                 } else {
-                    chatDesk.classList.remove('active'); // Hide
+                    $('chat-toggle-btn').classList.add('hidden');
+                    $('chat-container').classList.add('hidden');
                 }
-                
-                // Explicitly hide mobile chat whenever changing screens
-                $('chat-mobile').classList.add('hidden');
                 
                 $('theme-toggles').classList.toggle('hidden', screenId !== 'mode-selection-screen');
             };
@@ -595,19 +604,27 @@
                  $('settings-change-difficulty-btn').onclick = () => { $('settings-modal').classList.add('hidden'); setTheme('default'); resetBotUI(); showScreen('bot-setup-screen'); };
             }
 
-            // Chat
-            $('chat-toggle-btn').onclick = () => $('chat-mobile').classList.toggle('hidden');
-            const sendMsg = async (text, isMobile) => {
+            // Chat Logic
+            $('chat-toggle-btn').onclick = () => {
+                const chat = $('chat-container');
+                chat.classList.toggle('hidden');
+                chat.classList.remove('minimized'); // Ensure it opens fully
+            };
+            $('chat-minimize-btn').onclick = () => {
+                 $('chat-container').classList.toggle('minimized');
+            };
+            
+            const sendMsg = async () => {
+                const input = $('chat-input');
+                const text = input.value.trim();
                 if(!currentGameId || !userId || !text) return;
-                // Update array in document
                 const msg = { text, sender: userId, timestamp: Date.now() };
                 await updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), {
                     chatMessages: arrayUnion(msg)
                 });
-                if(isMobile) $('chat-input-mobile').value = ''; else $('chat-input-desktop').value = '';
+                input.value = '';
             };
-            $('chat-form-mobile').onsubmit = (e) => { e.preventDefault(); sendMsg($('chat-input-mobile').value, true); };
-            $('chat-form-desktop').onsubmit = (e) => { e.preventDefault(); sendMsg($('chat-input-desktop').value, false); };
+            $('chat-form').onsubmit = (e) => { e.preventDefault(); sendMsg(); };
 
             const totalCards = 4; let currentCard = 0;
             const updateCards = () => { $('flashcard-container').style.transform = `translateX(-${currentCard * 100}%)`; $('fc-prev').disabled = currentCard === 0; $('fc-next').disabled = currentCard === totalCards - 1; };
@@ -703,7 +720,7 @@
 
             function renderHangman() { ['part-head','part-body','part-arm-l','part-arm-r','part-leg-l','part-leg-r'].forEach((id, idx) => $(id).style.visibility = idx < wrongGuesses ? 'visible' : 'hidden'); }
             
-            // UPDATED STATS LOGIC
+            // UPDATED STATS LOGIC (Fixed sorting and display)
             function updateStats() { 
                 let p1Name = "P1", p2Name = "P2";
                 if (gameMode === 'online' && window.currentRoomData) { 
@@ -713,25 +730,31 @@
                     p1Name = "You"; p2Name = "Bot"; 
                 }
 
+                // Create array for sorting
                 const players = [
                     { name: p1Name, score: p1Score },
                     { name: p2Name, score: p2Score }
                 ];
                 
-                // Sort: Higher score first
+                // Sort descending by score
                 players.sort((a, b) => b.score - a.score);
 
-                $('score-display').innerHTML = `
-                    <div class="flex flex-col items-start">
-                        <div class="text-lg font-bold text-indigo-600">
-                            ${players[0].name}: ${players[0].score}
-                            ${players[0].score > players[1].score ? '👑' : ''}
-                        </div>
-                        <div class="text-sm font-semibold text-slate-500">
-                            ${players[1].name}: ${players[1].score}
-                        </div>
-                    </div>
-                `;
+                // Create Leaderboard HTML
+                let html = '';
+                players.forEach((p, index) => {
+                    // Add crown for the leader
+                    const icon = index === 0 && p.score > 0 ? '👑' : '';
+                    // Style leader differently
+                    const styleClass = index === 0 ? 'font-bold text-indigo-700 text-lg' : 'font-semibold text-gray-500 text-sm';
+                    
+                    html += `
+                    <div class="flex items-center justify-between w-full ${styleClass}">
+                        <span class="truncate max-w-[80px]">${p.name} ${icon}</span>
+                        <span>${p.score}</span>
+                    </div>`;
+                });
+
+                $('score-display').innerHTML = html;
                 $('coin-display').innerText = coins; 
                 
                 if(streak > 1) { $('streak-container').classList.remove('hidden'); $('streak-count').innerText = streak; }
@@ -851,7 +874,7 @@
                         // Round 1, 3, 5: Host Sets, Guest Guesses
                         // Round 2, 4, 6: Guest Sets, Host Guesses
                         const isOddRound = currentRound % 2 !== 0;
-                        const amISetter = (isHost && isOddRound) || (!isHost && !isOddRound);
+                        const amISetter = (isHost && isOddRound) || (!isHost && isOddRound);
 
                         if(amISetter) {
                              showScreen('hot-seat-setup-screen'); 
@@ -898,14 +921,14 @@
                         }
                         
                         // Chat Logic in Listener
-                        const box = document.getElementById('chat-messages-desktop'); const boxM = document.getElementById('chat-messages-mobile');
+                        const box = document.getElementById('chat-messages');
                         if(d.chatMessages && d.chatMessages.length > 0) {
-                            box.innerHTML = ''; boxM.innerHTML = '';
+                            box.innerHTML = '';
                             d.chatMessages.forEach(m => {
                                 const div = document.createElement('div'); div.className = `chat-msg ${m.sender===userId?'me':'them'}`; div.innerText = m.text;
-                                box.appendChild(div.cloneNode(true)); boxM.appendChild(div.cloneNode(true));
+                                box.appendChild(div.cloneNode(true));
                             });
-                            box.scrollTop = box.scrollHeight; boxM.scrollTop = boxM.scrollHeight;
+                            box.scrollTop = box.scrollHeight;
                         }
                     }
                 }); 
