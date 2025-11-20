@@ -691,7 +691,10 @@
             function renderKeyboard() {
                 const kb = $('keyboard'); kb.innerHTML = '';
                 // FIXED: Use full alphabet A-Z
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').forEach(char => {
+                const allLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+                // REMOVED: "BCDFGHJKLMNPQRSTVWXYZ".split(''); 
+                
+                allLetters.forEach(char => {
                     const btn = document.createElement('button'); btn.innerText = char; btn.className = `keyboard-button w-10 h-12 rounded-lg text-lg font-bold transition transform active:scale-95`; btn.id = `key-${char}`;
                     if(guessedLetters.includes(char)) { btn.disabled = true; btn.classList.add(secretWord.includes(char) ? 'correct-guess' : 'wrong-guess'); }
                     btn.onclick = () => handleGuess(char); kb.appendChild(btn);
@@ -834,11 +837,11 @@
             function updatePowerupsUI() { ['bomb', 'shield', 'freeze'].forEach(p => { const btn = $(`pup-${p}`); const cost = COSTS[p]; btn.disabled = coins < cost; if(coins >= cost) btn.onclick = () => activatePowerup(p); else btn.onclick = null; }); $('pup-voice').onclick = () => activateVoice(); }
             function activatePowerup(type) {
                 const cost = COSTS[type]; if(coins < cost) return; coins -= cost; updateStats(); updatePowerupsUI(); playTone("G4");
-                if(type === 'bomb') { const avail = "BCDFGHJKLMNPQRSTVWXYZ".split('').filter(c => !secretWord.includes(c) && !guessedLetters.includes(c)); const toRemove = avail.sort(() => 0.5 - Math.random()).slice(0, 3); toRemove.forEach(c => { if(gameMode==='online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: c, guessCount: Math.random() }); else processGuess(c); }); } 
+                if(type === 'bomb') { const avail = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('').filter(c => !secretWord.includes(c) && !guessedLetters.includes(c)); const toRemove = avail.sort(() => 0.5 - Math.random()).slice(0, 3); toRemove.forEach(c => { if(gameMode==='online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: c, guessCount: Math.random() }); else processGuess(c); }); } 
                 else if (type === 'shield') { activeShield = true; $('shield-overlay').classList.remove('hidden'); } 
                 else if (type === 'freeze') { isFrozen = true; $(`pup-freeze`).classList.add('ring-4', 'ring-blue-300'); setTimeout(() => { isFrozen = false; $(`pup-freeze`).classList.remove('ring-4', 'ring-blue-300'); }, 15000); }
             }
-            function activateVoice() { if (!('webkitSpeechRecognition' in window)) { alert("Voice not supported"); return; } const recognition = new webkitSpeechRecognition(); recognition.lang = 'en-US'; recognition.start(); $('pup-voice').classList.add('ring-4', 'ring-red-500'); recognition.onresult = (event) => { const text = event.results[event.results.length - 1][0].transcript.toUpperCase().trim(); const letter = text.slice(-1); if("BCDFGHJKLMNPQRSTVWXYZ".includes(letter)) handleGuess(letter); }; recognition.onend = () => $('pup-voice').classList.remove('ring-4', 'ring-red-500'); }
+            function activateVoice() { if (!('webkitSpeechRecognition' in window)) { alert("Voice not supported"); return; } const recognition = new webkitSpeechRecognition(); recognition.lang = 'en-US'; recognition.start(); $('pup-voice').classList.add('ring-4', 'ring-red-500'); recognition.onresult = (event) => { const text = event.results[event.results.length - 1][0].transcript.toUpperCase().trim(); const letter = text.slice(-1); if("ABCDEFGHIJKLMNOPQRSTUVWXYZ".includes(letter)) handleGuess(letter); }; recognition.onend = () => $('pup-voice').classList.remove('ring-4', 'ring-red-500'); }
 
             function startDailyChallenge() { const seed = new Date().toDateString(); let hash = 0; for(let i=0; i<seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash); const allWords = [...WORDS.movies.medium, ...WORDS.cars.medium, ...WORDS.food.medium]; startGame(allWords[Math.abs(hash) % allWords.length], 'daily', 'daily'); }
             function validateWord(w) { if(w.length < 2 || !/[A-Z]/.test(w)) { alert("Invalid Word"); return false; } return true; }
