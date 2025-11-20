@@ -22,55 +22,14 @@
             --accent-secondary: #ec4899;
             --card-bg: white;
             --coin-color: #eab308;
+            --letter-color: #4f46e5;
+            --slot-border: #cbd5e1;
         }
 
-        /* Candy Theme (Default) */
-        [data-theme="candy"] {
-            --bg-gradient: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%);
-            --glass-bg: rgba(255, 255, 255, 0.75);
-            --glass-border: rgba(255, 255, 255, 0.8);
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --accent-primary: #4f46e5;
-            --accent-secondary: #ec4899;
-            --card-bg: white;
-        }
-
-        /* Dark Theme (New) */
-        [data-theme="dark"] {
-            --bg-gradient: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
-            --glass-bg: rgba(30, 41, 59, 0.85);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent-primary: #818cf8;
-            --accent-secondary: #c084fc;
-            --card-bg: #1e293b;
-        }
-
-        /* Neon Theme */
-        [data-theme="neon"] {
-            --bg-gradient: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%);
-            --glass-bg: rgba(15, 23, 42, 0.65);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-main: #f1f5f9;
-            --text-muted: #94a3b8;
-            --accent-primary: #06b6d4;
-            --accent-secondary: #d946ef;
-            --card-bg: #1e293b;
-        }
-
-        /* Nature Theme */
-        [data-theme="nature"] {
-            --bg-gradient: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%);
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --glass-border: rgba(255, 255, 255, 0.9);
-            --text-main: #064e3b;
-            --text-muted: #065f46;
-            --accent-primary: #059669;
-            --accent-secondary: #d97706;
-            --card-bg: #ecfdf5;
-        }
+        [data-theme="candy"] { --bg-gradient: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%); --glass-bg: rgba(255, 255, 255, 0.75); --glass-border: rgba(255, 255, 255, 0.8); --text-main: #1e293b; --text-muted: #64748b; --accent-primary: #4f46e5; --accent-secondary: #ec4899; --card-bg: white; --letter-color: #4f46e5; --slot-border: #cbd5e1; }
+        [data-theme="dark"] { --bg-gradient: linear-gradient(180deg, #0f172a 0%, #1e293b 100%); --glass-bg: rgba(30, 41, 59, 0.85); --glass-border: rgba(255, 255, 255, 0.1); --text-main: #f8fafc; --text-muted: #94a3b8; --accent-primary: #818cf8; --accent-secondary: #c084fc; --card-bg: #1e293b; --letter-color: #38bdf8; --slot-border: #475569; }
+        [data-theme="neon"] { --bg-gradient: radial-gradient(at 0% 0%, hsla(253,16%,7%,1) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,1) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,1) 0, transparent 50%); --glass-bg: rgba(15, 23, 42, 0.65); --glass-border: rgba(255, 255, 255, 0.1); --text-main: #f1f5f9; --text-muted: #94a3b8; --accent-primary: #06b6d4; --accent-secondary: #d946ef; --card-bg: #1e293b; --letter-color: #22d3ee; --slot-border: #475569; }
+        [data-theme="nature"] { --bg-gradient: linear-gradient(120deg, #84fab0 0%, #8fd3f4 100%); --glass-bg: rgba(255, 255, 255, 0.8); --glass-border: rgba(255, 255, 255, 0.9); --text-main: #064e3b; --text-muted: #065f46; --accent-primary: #059669; --accent-secondary: #d97706; --card-bg: #ecfdf5; --letter-color: #15803d; --slot-border: #86efac; }
 
         body {
             font-family: 'Outfit', sans-serif;
@@ -82,7 +41,6 @@
             transition: background 0.8s ease, color 0.5s ease;
         }
 
-        /* === GLASSMORPHISM === */
         .glass-panel {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -92,18 +50,10 @@
             transition: background 0.5s ease, border-color 0.5s ease;
         }
 
-        /* === ANIMATIONS === */
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            75% { transform: translateX(5px); }
-        }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
         .shake-effect { animation: shake 0.3s ease-in-out; }
 
-        @keyframes floatUp {
-            0% { transform: translateY(0) scale(1); opacity: 1; }
-            100% { transform: translateY(-100px) scale(1.5); opacity: 0; }
-        }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-100px) scale(1.5); opacity: 0; } }
         .floating-text {
             position: absolute;
             pointer-events: none;
@@ -115,7 +65,6 @@
             text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        /* === GAME ELEMENTS === */
         .hangman-part {
             fill: none;
             stroke: var(--accent-secondary);
@@ -143,67 +92,34 @@
             font-family: 'Space Mono', monospace;
             transition: all 0.2s ease;
         }
-        .keyboard-button:hover:not(:disabled) {
-            border-color: var(--accent-primary);
-            color: var(--accent-primary);
-            transform: translateY(-2px);
-        }
+        .keyboard-button:hover:not(:disabled) { border-color: var(--accent-primary); color: var(--accent-primary); transform: translateY(-2px); }
         .keyboard-button.correct-guess { background: #dcfce7 !important; border-color: #22c55e !important; color: #15803d !important; }
         .keyboard-button.wrong-guess { background: #fee2e2 !important; border-color: #ef4444 !important; color: #b91c1c !important; }
-        
         [data-theme="neon"] .keyboard-button.correct-guess, [data-theme="dark"] .keyboard-button.correct-guess { background: rgba(34, 197, 94, 0.2) !important; color: #4ade80 !important; border-color: #4ade80 !important; }
         [data-theme="neon"] .keyboard-button.wrong-guess, [data-theme="dark"] .keyboard-button.wrong-guess { background: rgba(239, 68, 68, 0.2) !important; color: #f87171 !important; border-color: #f87171 !important; }
-
-        .keyboard-button.on-fire {
-            border: 2px solid #f59e0b !important;
-            box-shadow: 0 0 10px #f59e0b;
-            animation: pulseFire 1s infinite;
-        }
+        .keyboard-button.on-fire { border: 2px solid #f59e0b !important; box-shadow: 0 0 10px #f59e0b; animation: pulseFire 1s infinite; }
         @keyframes pulseFire { 0% { box-shadow: 0 0 5px #f59e0b; } 50% { box-shadow: 0 0 15px #f97316; } 100% { box-shadow: 0 0 5px #f59e0b; } }
 
-        /* Inputs & Cards */
-        input {
-            background: var(--card-bg);
-            border: 2px solid var(--glass-border);
-            color: var(--text-main);
-            transition: background 0.5s ease, color 0.5s ease;
-        }
-        .modal-content, .lobby-card {
-            background: var(--card-bg);
-            color: var(--text-main);
-            transition: background 0.5s ease, color 0.5s ease;
-        }
+        input { background: var(--card-bg); border: 2px solid var(--glass-border); color: var(--text-main); transition: background 0.5s ease, color 0.5s ease; }
+        .modal-content, .lobby-card { background: var(--card-bg); color: var(--text-main); transition: background 0.5s ease, color 0.5s ease; }
 
-        /* Mobile Layout Fixes */
-        .game-container {
-            max-width: 600px;
-            width: 100%;
-            padding: 1.5rem;
-            border-radius: 1.5rem;
-        }
+        .game-container { max-width: 600px; width: 100%; padding: 1.5rem; border-radius: 1.5rem; }
         
-        /* Powerups Bar */
-        .powerup-btn {
-            transition: transform 0.2s, filter 0.2s;
-        }
+        .powerup-btn { transition: transform 0.2s, filter 0.2s; }
         .powerup-btn:hover:not(:disabled) { transform: scale(1.05); }
         .powerup-btn:disabled { filter: grayscale(100%); opacity: 0.5; cursor: not-allowed; }
         .powerup-cost { font-size: 0.6rem; font-weight: 800; color: var(--coin-color); background: rgba(0,0,0,0.05); padding: 1px 4px; border-radius: 4px; margin-top: 2px; }
         
-        /* Avatar & Tabs */
         .lobby-tab.active { border-bottom: 3px solid var(--accent-primary); color: var(--accent-primary); background: rgba(0,0,0,0.05); }
         
         .avatar-circle {
-            width: 64px; height: 64px;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 32px;
-            border: 2px solid white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: transform 0.2s;
-            cursor: pointer;
+            width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 32px; border: 2px solid white; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s; cursor: pointer;
         }
         .avatar-circle:hover { transform: scale(1.1); }
+        
+        .word-slot-revealed { color: var(--letter-color) !important; border-bottom-color: var(--letter-color) !important; }
+        .word-slot-empty { border-bottom-color: var(--slot-border); color: transparent; }
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen p-4 overflow-hidden" data-theme="candy">
@@ -277,7 +193,6 @@
 
             <!-- === MAIN MENU === -->
             <div id="mode-selection-screen" class="w-full text-center space-y-6 py-8">
-                <!-- Removed ULTIMATE span here -->
                 <h1 class="text-6xl font-extrabold tracking-tighter mb-2" style="color: var(--accent-primary)">HANGMAN</h1>
                 <div class="grid gap-4 max-w-md mx-auto">
                     <button id="play-daily-btn" class="neon-btn py-4 rounded-2xl text-xl font-bold shadow-lg relative overflow-hidden group">
@@ -335,10 +250,10 @@
                 <button id="back-to-local-modes-btn" class="text-sm text-gray-500 hover:underline">← Back</button>
             </div>
 
-            <!-- === HOT SEAT SETUP === -->
+            <!-- === HOT SEAT / ONLINE SET WORD SCREEN === -->
             <div id="hot-seat-setup-screen" class="hidden w-full text-center space-y-6">
-                <h2 class="text-3xl font-bold">Secret Word</h2>
-                <p class="text-sm opacity-70">Enter a word for your friend to guess.</p>
+                <h2 class="text-3xl font-bold" id="secret-word-title">Secret Word</h2>
+                <p class="text-sm opacity-70">Enter a word for the opponent to guess.</p>
                 <input type="password" id="hot-seat-input" class="w-full p-4 text-center text-2xl tracking-widest font-mono rounded-xl border bg-white/50 focus:bg-white transition outline-none" placeholder="SECRET">
                 <button id="start-hot-seat-btn" class="neon-btn w-full py-3 rounded-xl font-bold text-lg">Start Game</button>
                 <button id="back-hot-seat-btn" class="text-sm text-gray-500 hover:underline">← Back</button>
@@ -394,7 +309,7 @@
                     </div>
                 </div>
                 <div class="loader"></div>
-                <p class="opacity-60 text-sm">Waiting for players...</p>
+                <p id="waiting-msg" class="opacity-60 text-sm">Waiting for players...</p>
                 <button id="cancel-room-btn" class="text-red-500 text-sm underline">Cancel</button>
             </div>
 
@@ -418,6 +333,8 @@
                         <div class="text-xs font-bold opacity-60 mt-1" id="round-display">Round 1</div>
                         <!-- SPECTATOR BADGE -->
                         <div id="spectator-badge" class="hidden bg-gray-800 text-white text-[10px] px-2 py-1 rounded mt-1 uppercase tracking-wide">Spectator</div>
+                        <!-- WAITING BADGE -->
+                         <div id="waiting-badge" class="hidden bg-indigo-100 text-indigo-800 text-[10px] px-2 py-1 rounded mt-1 uppercase tracking-wide animate-pulse">Opponent Setting Word...</div>
                     </div>
 
                     <div class="text-right">
@@ -546,7 +463,7 @@
         let timerInterval;
         let activeShield = false;
         let isFrozen = false;
-        let isSpectator = false; // NEW
+        let isSpectator = false; 
         let botSettings = { cat: null, diff: null };
         let usedWords = new Set();
         let audioCtx;
@@ -616,7 +533,14 @@
             $('back-online-btn').onclick = () => showScreen('mode-selection-screen');
             $('play-hot-seat-btn').onclick = () => { $('hot-seat-input').value = ''; showScreen('hot-seat-setup-screen'); };
             $('back-hot-seat-btn').onclick = () => showScreen('local-mode-selection-screen');
-            $('start-hot-seat-btn').onclick = () => { const w = $('hot-seat-input').value.toUpperCase().trim(); if(validateWord(w)) startGame(w, 'hotseat', 'default'); };
+            $('start-hot-seat-btn').onclick = () => { 
+                const w = $('hot-seat-input').value.toUpperCase().trim(); 
+                if(validateWord(w)) {
+                    if(gameMode === 'online') setOnlineWord(w);
+                    else startGame(w, 'hotseat', 'default');
+                }
+            };
+            
             $('play-bot-btn').onclick = () => { resetBotUI(); showScreen('bot-setup-screen'); };
             $('back-to-local-modes-btn').onclick = () => showScreen('local-mode-selection-screen');
 
@@ -643,7 +567,15 @@
             $('tab-host').onclick = () => { $('tab-host').classList.add('active'); $('tab-join').classList.remove('active'); $('view-host').classList.remove('hidden'); $('view-join').classList.add('hidden'); };
             $('tab-join').onclick = () => { $('tab-join').classList.add('active'); $('tab-host').classList.remove('active'); $('view-join').classList.remove('hidden'); $('view-host').classList.add('hidden'); };
             $('create-room-btn').onclick = createRoom; $('join-room-btn').onclick = joinRoom;
-            $('copy-code-btn').onclick = () => { navigator.clipboard.writeText($('room-code-display').value); $('copy-code-btn').innerText="Copied!"; setTimeout(()=>$('copy-code-btn').innerText="Copy", 1500); };
+            
+            $('copy-code-btn').onclick = () => {
+                const text = $('room-code-display').value;
+                const textArea = document.createElement("textarea");
+                textArea.value = text; textArea.style.position = "fixed";
+                document.body.appendChild(textArea); textArea.focus(); textArea.select();
+                try { document.execCommand('copy'); $('copy-code-btn').innerText = "Copied!"; } catch (e) {}
+                document.body.removeChild(textArea); setTimeout(() => $('copy-code-btn').innerText = "Copy", 1500);
+            };
             
             $('settings-btn').onclick = () => $('settings-modal').classList.remove('hidden');
             $('settings-resume-btn').onclick = () => $('settings-modal').classList.add('hidden');
@@ -673,7 +605,7 @@
                 if(gameMode === 'bot') $('start-bot-game-btn').click();
                 else if(gameMode === 'hotseat') showScreen('hot-seat-setup-screen');
                 else if(gameMode === 'daily') alert("Come back tomorrow!");
-                else location.reload();
+                else location.reload(); // Simple reload for now
                 $('result-overlay').classList.add('hidden');
             };
             $('menu-btn').onclick = fullReset;
@@ -696,7 +628,7 @@
                 $('shield-overlay').classList.add('hidden');
                 $('settings-change-difficulty-btn').classList.toggle('hidden', mode !== 'bot');
                 
-                // Spectator UI
+                // Setup UI per mode
                 if(isSpectator) {
                     $('keyboard').classList.add('hidden');
                     $('powerups-bar').classList.add('hidden');
@@ -709,17 +641,24 @@
                     $('spectator-badge').classList.add('hidden');
                 }
 
+                // Online Host Word Setting
+                if(mode === 'online' && !word) {
+                   // This block is hit when game starts but word isn't set
+                   // Handled by Firestore listener mostly
+                }
+
                 renderWord(); renderKeyboard(); renderHangman(); updateStats(); updatePowerupsUI();
-                startTimer(150);
+                if(word) startTimer(150);
             }
 
             function renderWord() {
                 const container = $('word-display'); container.innerHTML = '';
+                if(!secretWord) return;
                 secretWord.split('').forEach(char => {
                     const slot = document.createElement('div');
-                    slot.className = `w-10 h-14 flex items-end justify-center text-3xl font-bold border-b-4 mx-1 ${guessedLetters.includes(char) ? 'border-indigo-500 text-indigo-600' : 'border-gray-300 text-transparent'}`;
+                    slot.className = `w-10 h-14 flex items-end justify-center text-3xl font-bold border-b-4 mx-1 ${guessedLetters.includes(char) ? 'word-slot-revealed' : 'word-slot-empty'}`;
                     if (char === ' ') { slot.className = 'w-6'; slot.innerHTML = '&nbsp;'; }
-                    else if (guessedLetters.includes(char)) { slot.innerText = char; slot.classList.add('revealed'); }
+                    else if (guessedLetters.includes(char)) { slot.innerText = char; }
                     container.appendChild(slot);
                 });
             }
@@ -739,25 +678,41 @@
 
             function handleGuess(char) {
                 if(guessedLetters.includes(char) || wrongGuesses >= maxWrong) return;
+                
+                if(gameMode === 'online') {
+                    // Online: Update Firestore
+                    updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), {
+                        lastGuess: char,
+                        guessCount: (currentRoomData.guessCount || 0) + 1
+                    });
+                } else {
+                    // Local
+                    processGuess(char);
+                }
+            }
+
+            function processGuess(char) {
+                if(guessedLetters.includes(char)) return;
                 guessedLetters.push(char);
-                const btn = $(`key-${char}`); btn.disabled = true;
+                const btn = $(`key-${char}`); if(btn) btn.disabled = true;
 
                 if (secretWord.includes(char)) {
-                    btn.classList.add('correct-guess'); streak++; score += 10 * streak;
-                    coins += 3; // EARN COINS
-                    playTone("C5"); createFloatingText(btn, `+${10*streak}`);
-                    if(streak >= 3) btn.classList.add('on-fire');
+                    if(btn) btn.classList.add('correct-guess'); 
+                    streak++; score += 10 * streak; coins += 3;
+                    playTone("C5"); if(btn) createFloatingText(btn, `+${10*streak}`);
+                    if(streak >= 3 && btn) btn.classList.add('on-fire');
                     checkWin();
                 } else {
                     if (activeShield) {
-                        activeShield = false; $('shield-overlay').classList.add('hidden'); createFloatingText(btn, "BLOCKED!"); playTone("A3");
+                        activeShield = false; $('shield-overlay').classList.add('hidden'); if(btn) createFloatingText(btn, "BLOCKED!"); playTone("A3");
                     } else {
-                        btn.classList.add('wrong-guess'); wrongGuesses++; streak = 0; playTone("E2");
+                        if(btn) btn.classList.add('wrong-guess'); 
+                        wrongGuesses++; streak = 0; playTone("E2");
                         $('game-container').classList.add('shake-effect'); setTimeout(()=>$('game-container').classList.remove('shake-effect'), 300);
                     }
                     checkLoss();
                 }
-                renderWord(); renderHangman(); updateStats(); updatePowerupsUI(); // Update UI to check affordability
+                renderWord(); renderHangman(); updateStats(); updatePowerupsUI();
             }
 
             function renderHangman() {
@@ -767,7 +722,7 @@
 
             function updateStats() {
                 $('score-display').innerText = score;
-                $('coin-display').innerText = coins; // Update Coin UI
+                $('coin-display').innerText = coins; 
                 if(streak > 1) { $('streak-container').classList.remove('hidden'); $('streak-count').innerText = streak; }
                 else $('streak-container').classList.add('hidden');
             }
@@ -796,35 +751,30 @@
                 $('result-word').innerText = `Word: ${secretWord}`;
                 if(win) { confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); playTone("C4", "2n"); coins += 7; updateStats(); } 
                 else { playTone("C2", "2n"); }
-                
-                // Dictionary Fetch
                 fetchDefinition(secretWord);
             }
 
             // --- POWERUPS ---
             function updatePowerupsUI() {
                 ['bomb', 'shield', 'freeze'].forEach(p => {
-                    const btn = $(`pup-${p}`);
-                    const cost = COSTS[p];
-                    btn.disabled = coins < cost; // Disable if too expensive
-                    if(coins >= cost) btn.onclick = () => activatePowerup(p);
-                    else btn.onclick = null;
+                    const btn = $(`pup-${p}`); const cost = COSTS[p];
+                    btn.disabled = coins < cost; 
+                    if(coins >= cost) btn.onclick = () => activatePowerup(p); else btn.onclick = null;
                 });
-                $('pup-voice').onclick = () => activateVoice(); // Voice is free/separate logic
+                $('pup-voice').onclick = () => activateVoice();
             }
 
             function activatePowerup(type) {
-                const cost = COSTS[type];
-                if(coins < cost) return;
-                coins -= cost;
-                updateStats();
-                updatePowerupsUI();
-                playTone("G4");
+                const cost = COSTS[type]; if(coins < cost) return;
+                coins -= cost; updateStats(); updatePowerupsUI(); playTone("G4");
 
                 if(type === 'bomb') {
                     const avail = "BCDFGHJKLMNPQRSTVWXYZ".split('').filter(c => !secretWord.includes(c) && !guessedLetters.includes(c));
                     const toRemove = avail.sort(() => 0.5 - Math.random()).slice(0, 3);
-                    toRemove.forEach(c => { guessedLetters.push(c); $(`key-${c}`).disabled = true; $(`key-${c}`).style.opacity = 0.3; });
+                    toRemove.forEach(c => { 
+                         if(gameMode==='online') updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { lastGuess: c, guessCount: (currentRoomData.guessCount||0)+1 }); 
+                         else processGuess(c);
+                    });
                 } else if (type === 'shield') {
                     activeShield = true; $('shield-overlay').classList.remove('hidden');
                 } else if (type === 'freeze') {
@@ -835,8 +785,7 @@
 
             function activateVoice() {
                 if (!('webkitSpeechRecognition' in window)) { alert("Voice not supported"); return; }
-                const recognition = new webkitSpeechRecognition();
-                recognition.lang = 'en-US'; recognition.start();
+                const recognition = new webkitSpeechRecognition(); recognition.lang = 'en-US'; recognition.start();
                 $('pup-voice').classList.add('ring-4', 'ring-red-500');
                 recognition.onresult = (event) => {
                     const text = event.results[event.results.length - 1][0].transcript.toUpperCase().trim();
@@ -847,8 +796,7 @@
             }
 
             function startDailyChallenge() {
-                const seed = new Date().toDateString();
-                let hash = 0; for(let i=0; i<seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
+                const seed = new Date().toDateString(); let hash = 0; for(let i=0; i<seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
                 const allWords = [...WORDS.movies.medium, ...WORDS.cars.medium, ...WORDS.food.medium];
                 startGame(allWords[Math.abs(hash) % allWords.length], 'daily', 'daily');
             }
@@ -876,14 +824,84 @@
                  $('custom-word-list').value = ''; botSettings = { cat: null, diff: null };
             }
 
+            // --- FIREBASE ONLINE LOGIC ---
             function initFirebase() { try { app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); onAuthStateChanged(auth, u => { if(u) userId = u.uid; else signInAnonymously(auth); }); } catch(e) { console.log("Offline mode"); } }
             
-            // Simulating Spectator Logic for this demo:
-            // If we were fully online, we'd check the `guests` object in Firestore.
-            // For now, we just pretend a joined user is a spectator if the room is 'full' (simulated).
-            async function createRoom() { const name = $('host-name').value || "Host"; const roomRef = await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames`), { host: userId, hostName: name, status: 'waiting', guests: {} }); currentGameId = roomRef.id; isHost = true; isSpectator = false; enterWaitingRoom(currentGameId); }
-            async function joinRoom() { const id = $('join-code').value; const name = $('join-name').value || "Guest"; currentGameId = id; isHost = false; isSpectator = false; enterWaitingRoom(id); }
-            function enterWaitingRoom(id) { showScreen('waiting-screen'); $('room-code-display').value = id; onSnapshot(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), (snap) => { const d = snap.data(); if(d && d.status === 'playing') { startGame("ONLINE", 'online', 'default'); $('taunt-bar').classList.remove('hidden'); } }); setTimeout(() => { if(isHost) updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), { status: 'playing' }); }, 3000); }
+            async function createRoom() { 
+                const name = $('host-name').value || "Host"; 
+                const roomRef = await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames`), { 
+                    host: userId, hostName: name, status: 'waiting', guests: {}, wordSet: false, secretWord: ''
+                }); 
+                currentGameId = roomRef.id; isHost = true; isSpectator = false; enterWaitingRoom(currentGameId); 
+            }
+
+            async function joinRoom() { 
+                const id = $('join-code').value.trim(); const name = $('join-name').value || "Guest"; 
+                if(!id) return alert("Please enter a Room Code");
+                currentGameId = id; isHost = false; isSpectator = false; 
+                try {
+                    const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, id);
+                    await updateDoc(gameRef, { status: 'setup', guest: userId, guestName: name });
+                    enterWaitingRoom(id);
+                } catch(e) { console.error(e); alert("Could not join room."); }
+            }
+
+            function enterWaitingRoom(id) { 
+                showScreen('waiting-screen'); $('room-code-display').value = id; 
+                if(roomUnsub) roomUnsub();
+                roomUnsub = onSnapshot(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), (snap) => { 
+                    const d = snap.data(); if(!d) return; window.currentRoomData = d;
+                    
+                    // Phase 1: Setup (Word Selection)
+                    if(d.status === 'setup') {
+                        if(isHost) {
+                             // Host sets word
+                             showScreen('hot-seat-setup-screen');
+                             $('secret-word-title').innerText = "Set Secret Word";
+                             $('back-hot-seat-btn').classList.add('hidden'); // Can't go back in online
+                             gameMode = 'online';
+                        } else {
+                             // Guest waits
+                             showScreen('game-screen');
+                             $('keyboard').classList.add('hidden');
+                             $('waiting-badge').classList.remove('hidden');
+                             renderWord(); // Renders empty slots if word exists
+                        }
+                    } 
+                    // Phase 2: Playing
+                    else if(d.status === 'playing') {
+                        secretWord = d.secretWord;
+                        gameMode = 'online';
+                        if(!d.lastGuess && guessedLetters.length <= 5) { // First load
+                            startGame(secretWord, 'online', 'default');
+                            $('taunt-bar').classList.remove('hidden');
+                        } else {
+                             // Update State from Firestore
+                             // Check if new guess came in
+                             if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) {
+                                 processGuess(d.lastGuess);
+                             }
+                        }
+                        
+                        // Role Management
+                        if(isHost) {
+                            $('keyboard').classList.add('hidden');
+                             $('spectator-badge').classList.remove('hidden');
+                             $('spectator-badge').innerText = "HOST (WATCHING)";
+                        } else {
+                            $('keyboard').classList.remove('hidden');
+                             $('waiting-badge').classList.add('hidden');
+                        }
+                    }
+                }); 
+            }
+            
+            function setOnlineWord(w) {
+                updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { 
+                    status: 'playing', secretWord: w, wordSet: true
+                });
+            }
+
             document.querySelectorAll('.taunt-btn').forEach(b => b.onclick = () => { const msg = b.dataset.msg; createFloatingText($('game-container'), msg); playTone("C3", "8n"); });
 
         });
