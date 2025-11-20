@@ -134,7 +134,6 @@
         #chat-mobile {
             position: fixed; bottom: 80px; right: 20px;
             width: 280px; height: 350px; z-index: 50;
-            /* Removed default display: flex to allow 'hidden' class to work */
             transform-origin: bottom right; transition: transform 0.3s ease, opacity 0.3s ease;
         }
         .chat-msg { padding: 8px 12px; margin-bottom: 8px; border-radius: 12px; font-size: 0.9rem; max-width: 85%; }
@@ -281,11 +280,14 @@
 
             <!-- === ONLINE LOBBY === -->
             <div id="online-setup-screen" class="hidden w-full space-y-6">
-                <div class="flex justify-between items-center">
+                <!-- Updated header with spacing to clear the top-right help button -->
+                <div class="flex justify-between items-center mt-8">
                     <h2 class="text-2xl font-bold">Online Lobby</h2>
-                    <span class="text-xs font-bold bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full flex items-center gap-1">
-                        Multiplayer <span class="text-sm">?</span>
-                    </span>
+                    <!-- Fixed badge structure with div + proper gap/items-center -->
+                    <div class="bg-indigo-100 text-indigo-600 px-3 py-1 rounded-full flex items-center gap-2 shadow-sm">
+                        <span class="text-xs font-bold uppercase tracking-wide">Multiplayer</span>
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </div>
                 </div>
                 
                 <div class="bg-white rounded-2xl shadow-lg overflow-hidden lobby-card">
@@ -324,6 +326,7 @@
              <div id="round-selection-screen" class="hidden w-full text-center space-y-6">
                 <h2 class="text-3xl font-bold">Match Settings</h2>
                 <p class="opacity-70">Select Match Duration</p>
+                
                 <div class="grid gap-3 max-w-xs mx-auto">
                     <button class="round-opt-btn bg-white p-4 rounded-xl border hover:border-indigo-500 shadow font-bold text-lg transition transform hover:scale-105" data-type="preset" data-rounds="3">
                         ⚡ Small Match <span class="block text-sm font-normal opacity-60">(3 Rounds)</span>
@@ -335,10 +338,13 @@
                         ⚙️ Custom <span class="block text-sm font-normal opacity-60">(Manual)</span>
                     </button>
                 </div>
+
+                <!-- Custom Input Field -->
                 <div id="custom-round-input-container" class="hidden max-w-xs mx-auto bg-white p-4 rounded-xl border shadow-sm animate-fade-in">
                     <label class="text-xs font-bold uppercase tracking-wide text-gray-500 mb-2 block">Enter Rounds (1-20)</label>
                     <input type="number" id="custom-rounds-input" class="w-full p-3 rounded-lg border-2 border-indigo-100 text-center text-2xl font-bold text-indigo-600 focus:border-indigo-500 outline-none" min="1" max="20" placeholder="#">
                 </div>
+
                 <button id="confirm-rounds-btn" class="neon-btn w-full py-3 rounded-xl font-bold text-lg hidden">Start Match</button>
             </div>
 
@@ -454,7 +460,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, orderBy, serverTimestamp, setLogLevel, getDocs, where } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc, addDoc, updateDoc, deleteDoc, onSnapshot, collection, query, orderBy, serverTimestamp, setLogLevel, getDocs, where, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA7s5i4dmBWD0Qtzn6wvOjFuTbbRd9Z1ys",
@@ -589,7 +595,17 @@
             customInput.addEventListener('input', (e) => { const val = parseInt(e.target.value); if (val && val > 0 && val <= 50) { totalRounds = val; startMatchBtn.classList.remove('hidden'); } else { startMatchBtn.classList.add('hidden'); } });
             $('confirm-rounds-btn').onclick = async () => {
                 if (!totalRounds || totalRounds < 1) return alert("Please select rounds!");
-                await updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { totalRounds, currentRound: 1, status: 'waiting_for_guest' });
+                // Use SET to create with specific ID (the room code)
+                await setDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { 
+                    host: userId, 
+                    hostName: $('host-name').value || "Host",
+                    totalRounds, 
+                    currentRound: 1, 
+                    status: 'waiting_for_guest', 
+                    guests: {},
+                    roomCode: currentGameId, // Store code in doc too
+                    chatMessages: [] // Init chat array
+                });
                 enterWaitingRoom(currentGameId);
             };
 
@@ -602,8 +618,12 @@
             // Chat
             $('chat-toggle-btn').onclick = () => $('chat-mobile').classList.toggle('hidden');
             const sendMsg = async (text, isMobile) => {
-                if(!currentGameId || !userId) return;
-                await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames/${currentGameId}/chat`), { text, sender: userId, timestamp: serverTimestamp() });
+                if(!currentGameId || !userId || !text) return;
+                // Update array in document
+                const msg = { text, sender: userId, timestamp: Date.now() };
+                await updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), {
+                    chatMessages: arrayUnion(msg)
+                });
                 if(isMobile) $('chat-input-mobile').value = ''; else $('chat-input-desktop').value = '';
             };
             $('chat-form-mobile').onsubmit = (e) => { e.preventDefault(); sendMsg($('chat-input-mobile').value, true); };
@@ -685,21 +705,23 @@
             function createFloatingText(element, text) { const rect = element.getBoundingClientRect(); const floatEl = document.createElement('div'); floatEl.className = 'floating-text'; floatEl.innerText = text; floatEl.style.left = `${rect.left}px`; floatEl.style.top = `${rect.top}px`; document.body.appendChild(floatEl); setTimeout(() => floatEl.remove(), 1000); }
             function resetBotUI() { document.querySelectorAll('.bot-cat-btn').forEach(x => x.classList.remove('bg-indigo-100', 'border-indigo-500')); document.querySelectorAll('.bot-diff-btn').forEach(x => x.classList.remove('ring-2', 'ring-offset-1')); $('custom-word-list').value = ''; botSettings = { cat: null, diff: null }; }
             function initFirebase() { try { app = initializeApp(firebaseConfig); db = getFirestore(app); auth = getAuth(app); onAuthStateChanged(auth, u => { if(u) userId = u.uid; else signInAnonymously(auth); }); } catch(e) { console.log("Offline mode"); } }
-            async function createRoom() { startAudio(); const name = $('host-name').value || "Host"; const code = Math.floor(100000 + Math.random() * 900000).toString(); const roomRef = await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames`), { roomCode: code, host: userId, hostName: name, status: 'selection', guests: {} }); currentGameId = roomRef.id; isHost = true; isSpectator = false; showScreen('round-selection-screen'); }
+            async function createRoom() { startAudio(); const name = $('host-name').value || "Host"; const code = Math.floor(100000 + Math.random() * 900000).toString(); currentGameId = code; isHost = true; isSpectator = false; showScreen('round-selection-screen'); }
             async function joinRoom() { startAudio(); const code = $('join-code').value.trim(); const name = $('join-name').value || "Guest"; if(!code) return alert("Enter Code"); 
-                const q = query(collection(db, `artifacts/${appId}/public/data/hangmanGames`), where("roomCode", "==", code));
-                const snap = await getDocs(q);
-                if(snap.empty) return alert("Room not found");
-                const docSnap = snap.docs[0]; currentGameId = docSnap.id; isHost = false; isSpectator = false;
-                const data = docSnap.data();
-                if(data.guest) { isSpectator = true; await updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { [`guests.${userId}`]: name }); }
-                else { await updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { guest: userId, guestName: name, status: 'waiting_for_guest' }); }
-                enterWaitingRoom(currentGameId);
+                currentGameId = code; isHost = false; isSpectator = false;
+                try { 
+                    const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, code);
+                    const snap = await getDoc(gameRef);
+                    if(!snap.exists()) return alert("Room not found");
+                    const data = snap.data();
+                    if(data.guest) { isSpectator = true; await updateDoc(gameRef, { [`guests.${userId}`]: name }); }
+                    else { await updateDoc(gameRef, { guest: userId, guestName: name, status: 'waiting_for_guest' }); }
+                    enterWaitingRoom(currentGameId);
+                } catch(e) { console.error(e); alert("Could not join room."); }
             }
             function enterWaitingRoom(id) { 
-                showScreen('waiting-screen'); 
+                showScreen('waiting-screen'); $('room-code-display').value = id; 
                 onSnapshot(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), (snap) => { 
-                    const d = snap.data(); if(!d) return; window.currentRoomData = d; $('room-code-display').value = d.roomCode;
+                    const d = snap.data(); if(!d) return; window.currentRoomData = d;
                     totalRounds = d.totalRounds || 3; currentRound = d.currentRound || 1;
                     
                     if(d.status === 'waiting_for_guest' && d.guest && isHost) updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), { status: 'setup' });
@@ -715,13 +737,18 @@
                         else { if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) processGuess(d.lastGuess); }
                         const isOddRound = currentRound % 2 !== 0; const amIGuesser = (isHost && !isOddRound) || (!isHost && isOddRound);
                         if(!amIGuesser || isSpectator) { $('keyboard').classList.add('hidden'); $('spectator-badge').classList.remove('hidden'); $('spectator-badge').innerText = isSpectator ? "SPECTATOR" : "WATCHING (SETTER)"; } else { $('keyboard').classList.remove('hidden'); $('waiting-badge').classList.add('hidden'); $('spectator-badge').classList.add('hidden'); }
+                        
+                        // Chat Logic in Listener
+                        const box = document.getElementById('chat-messages-desktop'); const boxM = document.getElementById('chat-messages-mobile');
+                        if(d.chatMessages && d.chatMessages.length > 0) {
+                            box.innerHTML = ''; boxM.innerHTML = '';
+                            d.chatMessages.forEach(m => {
+                                const div = document.createElement('div'); div.className = `chat-msg ${m.sender===userId?'me':'them'}`; div.innerText = m.text;
+                                box.appendChild(div.cloneNode(true)); boxM.appendChild(div.cloneNode(true));
+                            });
+                            box.scrollTop = box.scrollHeight; boxM.scrollTop = boxM.scrollHeight;
+                        }
                     }
-                });
-                if(chatUnsub) chatUnsub();
-                chatUnsub = onSnapshot(query(collection(db, `artifacts/${appId}/public/data/hangmanGames/${id}/chat`), orderBy("timestamp", "desc")), (snap) => {
-                    const box = document.getElementById('chat-messages-desktop'); const boxM = document.getElementById('chat-messages-mobile');
-                    box.innerHTML = ''; boxM.innerHTML = '';
-                    snap.docs.forEach(doc => { const m = doc.data(); const div = document.createElement('div'); div.className = `chat-msg ${m.sender===userId?'me':'them'}`; div.innerText = m.text; box.appendChild(div.cloneNode(true)); boxM.appendChild(div); });
                 });
             }
             function setOnlineWord(w) { updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { status: 'playing', secretWord: w, lastGuess: null, guessCount: 0 }); }
