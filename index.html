@@ -804,59 +804,128 @@
                 const name = $('host-name').value || "Host"; 
                 const roomRef = await addDoc(collection(db, `artifacts/${appId}/public/data/hangmanGames`), { host: userId, hostName: name, status: 'selection', guests: {} }); 
                 currentGameId = roomRef.id; isHost = true; isSpectator = false; 
-                showScreen('round-selection-screen'); // Go to round selection first
+                showScreen('round-selection-screen'); 
             }
 
             async function joinRoom() { 
-                const id = $('join-code').value.trim(); const name = $('join-name').value || "Guest"; 
+                const id = $('join-code').value.trim(); 
+                const name = $('join-name').value || "Guest"; 
                 if(!id) return alert("Please enter a Room Code");
-                currentGameId = id; isHost = false; isSpectator = false; 
-                try { const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, id); await updateDoc(gameRef, { status: 'waiting_for_guest', guest: userId, guestName: name }); enterWaitingRoom(id); } catch(e) { console.error(e); alert("Could not join room."); }
+                
+                currentGameId = id; 
+                isHost = false; 
+                isSpectator = false; 
+                
+                try { 
+                    const gameRef = doc(db, `artifacts/${appId}/public/data/hangmanGames`, id);
+                    const snap = await getDoc(gameRef);
+                    
+                    if (!snap.exists()) return alert("Room not found!");
+                    const data = snap.data();
+
+                    // Check if room is full (has a guest already)
+                    if (data.guest && data.guest !== userId) {
+                        isSpectator = true;
+                        // Add to guests list (simplified for this demo)
+                        await updateDoc(gameRef, { [`guests.${userId}`]: name });
+                        enterWaitingRoom(id);
+                    } else {
+                        // Join as Player 2
+                        await updateDoc(gameRef, { guest: userId, guestName: name }); 
+                        enterWaitingRoom(id);
+                    }
+                } catch(e) { console.error(e); alert("Could not join room."); }
             }
 
             function enterWaitingRoom(id) { 
                 showScreen('waiting-screen'); $('room-code-display').value = id; 
                 if(roomUnsub) roomUnsub();
+                
                 roomUnsub = onSnapshot(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), (snap) => { 
                     const d = snap.data(); if(!d) return; window.currentRoomData = d;
                     totalRounds = d.totalRounds || 3; currentRound = d.currentRound || 1;
                     
+                    // === FIXED LOGIC HERE ===
+                    // 1. Transition from Waiting -> Setup (Host triggers this when Guest appears)
+                    if(d.status === 'waiting_for_guest' && d.guest && isHost) {
+                        updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, id), { status: 'setup' });
+                    }
+
+                    // 2. Handle Setup Phase (Word Selection)
                     if(d.status === 'setup') {
                         $('result-overlay').classList.add('hidden');
+                        // If Spectator, just show game screen and wait
+                        if(isSpectator) {
+                             showScreen('game-screen');
+                             $('keyboard').classList.add('hidden');
+                             $('waiting-badge').classList.remove('hidden');
+                             $('waiting-badge').innerText = "Host Setting Word...";
+                             renderWord(); // Empty slots
+                             return;
+                        }
+
                         // Determine Roles based on Round Number
+                        // Round 1, 3, 5: Host Sets, Guest Guesses
+                        // Round 2, 4, 6: Guest Sets, Host Guesses
                         const isOddRound = currentRound % 2 !== 0;
                         const amISetter = (isHost && isOddRound) || (!isHost && !isOddRound);
 
                         if(amISetter) {
-                             showScreen('hot-seat-setup-screen'); $('secret-word-title').innerText = `Round ${currentRound}: Set Word`;
-                             $('back-hot-seat-btn').classList.add('hidden'); gameMode = 'online';
+                             showScreen('hot-seat-setup-screen'); 
+                             $('secret-word-title').innerText = `Round ${currentRound}: Set Word`;
+                             $('back-hot-seat-btn').classList.add('hidden'); 
+                             gameMode = 'online';
                         } else {
-                             showScreen('game-screen'); $('keyboard').classList.add('hidden');
-                             $('waiting-badge').classList.remove('hidden'); $('waiting-badge').innerText = "Opponent Setting Word...";
+                             showScreen('game-screen'); 
+                             $('keyboard').classList.add('hidden');
+                             $('waiting-badge').classList.remove('hidden'); 
+                             $('waiting-badge').innerText = "Opponent Setting Word...";
                              renderWord(); 
                         }
-                    } else if(d.status === 'playing') {
-                        secretWord = d.secretWord; gameMode = 'online';
-                        if(!d.lastGuess && guessedLetters.length <= 5) { startGame(secretWord, 'online', 'default'); $('taunt-bar').classList.remove('hidden'); } 
-                        else { if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) processGuess(d.lastGuess); }
+                    } 
+                    // 3. Handle Playing Phase
+                    else if(d.status === 'playing') {
+                        secretWord = d.secretWord; 
+                        gameMode = 'online';
                         
-                        // Role Visibility
+                        // Initial Load or Re-sync
+                        if((!d.lastGuess && guessedLetters.length <= 5) || secretWord !== window.lastSecretWord) { 
+                            window.lastSecretWord = secretWord; // Prevent re-init loop
+                            startGame(secretWord, 'online', 'default'); 
+                            $('taunt-bar').classList.remove('hidden'); 
+                        } 
+                        else { 
+                            // Process incoming guesses
+                            if(d.lastGuess && !guessedLetters.includes(d.lastGuess)) processGuess(d.lastGuess); 
+                        }
+                        
+                        // Determine Guesser Role
                         const isOddRound = currentRound % 2 !== 0;
                         const amIGuesser = (isHost && !isOddRound) || (!isHost && isOddRound);
                         
-                        if(!amIGuesser) {
+                        // If I am NOT the guesser (Setter or Spectator), hide controls
+                        if(!amIGuesser || isSpectator) {
                             $('keyboard').classList.add('hidden');
                             $('spectator-badge').classList.remove('hidden');
-                            $('spectator-badge').innerText = "SPECTATING (SETTER)";
+                            $('spectator-badge').innerText = isSpectator ? "SPECTATOR" : "WATCHING (SETTER)";
                         } else {
                             $('keyboard').classList.remove('hidden');
                             $('waiting-badge').classList.add('hidden');
+                            $('spectator-badge').classList.add('hidden');
                         }
                     }
                 }); 
             }
             
-            function setOnlineWord(w) { updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { status: 'playing', secretWord: w }); }
+            function setOnlineWord(w) { 
+                updateDoc(doc(db, `artifacts/${appId}/public/data/hangmanGames`, currentGameId), { 
+                    status: 'playing', 
+                    secretWord: w,
+                    lastGuess: null, // Reset guesses for new round
+                    guessCount: 0
+                }); 
+            }
+            
             document.querySelectorAll('.taunt-btn').forEach(b => b.onclick = () => { const msg = b.dataset.msg; createFloatingText($('game-container'), msg); playTone("C3", "8n"); });
 
         });
